@@ -109,10 +109,38 @@ a{color:var(--green)}
 .sortbtn{cursor:pointer}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.span2{grid-column:auto}.stats{grid-template-columns:repeat(2,1fr)}.weathergrid{grid-template-columns:repeat(2,1fr)}.toolbar input{max-width:100% !important}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}}
+.authwrap{position:fixed;inset:0;background:var(--bg);z-index:30;overflow:auto;display:none}
+.authwrap.show{display:block}
+.authbox{max-width:420px;margin:0 auto;padding:calc(40px + env(safe-area-inset-top)) 18px 40px}
+.authbox .logo{width:72px;height:72px;border-radius:18px;margin:0 auto 14px;display:block}
+.authbox h1{text-align:center;margin:0 0 4px;font-size:24px}
+.authbox .sub{text-align:center;color:var(--muted);font-size:13px;margin:0 0 18px}
+.authbox .field{margin-bottom:12px}
+.authbox .msg{font-size:13px;margin-top:10px;min-height:18px;color:var(--red)}
+.authbox .msg.ok{color:var(--green)}
+.linkbtn{background:none !important;color:var(--green) !important;font-weight:600;padding:8px;font-size:13px}
+.members{font-size:13px}
+.members div{padding:6px 0;border-bottom:1px solid var(--line)}
+.members div:last-child{border:0}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--tan);margin-left:6px}
 </style>
 </head>
 <body>
 <header><h1>Whitetail Tracker</h1><select id="season" onchange="renderAll()"></select></header>
+
+<div id="auth" class="authwrap"><div class="authbox">
+<img class="logo" src="./icon.png" alt="">
+<h1>Whitetail Tracker</h1>
+<p class="sub">Log sits, see what your stands produce, share with your group.</p>
+<div id="setupMsg" class="banner" style="display:none">This copy of the app hasn't been connected to a Supabase project yet. Fill in CONFIG at the top of index.html (see README).</div>
+<div class="chips" style="justify-content:center"><button class="chip on" id="tabIn" onclick="authMode('in')">Sign in</button><button class="chip" id="tabUp" onclick="authMode('up')">Create account</button></div>
+<div class="field" id="nameField" style="display:none"><label for="aName">Your name</label><input id="aName" autocomplete="name" placeholder="What your partners call you"></div>
+<div class="field"><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com"></div>
+<div class="field"><label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password" placeholder="At least 6 characters" onkeydown="if(event.key==='Enter')authSubmit()"></div>
+<button id="authBtn" onclick="authSubmit()">Sign in</button>
+<div id="authMsg" class="msg"></div>
+<button class="linkbtn" id="forgotBtn" onclick="forgotPassword()">Forgot password?</button>
+</div></div>
 <main>
 <div id="offline" class="banner">You're offline. Hunts still save on this device; weather will load when you're back online.</div>
 
@@ -154,7 +182,7 @@ a{color:var(--green)}
 <select id="sort" onchange="render()"><option value="date">Newest first</option><option value="bucks">Most bucks</option><option value="deer">Most deer</option><option value="rate">Best deer/hr</option></select>
 </div>
 <div class="table"><table><thead><tr><th>Date</th><th>Hunter</th><th>Area</th><th>Stand</th><th>Time</th><th>Bucks</th><th>Does</th><th>Weather</th><th>Wind</th><th>Barometer</th><th>Moon</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
-<p class="note">Tap a row to edit it. Partners' hunts (from sync) are view-only.</p>
+<p class="note">Tap a row to edit it. Partners' hunts are view-only.</p>
 </section>
 </section>
 
@@ -177,7 +205,7 @@ a{color:var(--green)}
 <div><label for="camStand">Camera / stand for new uploads</label><input id="camStand" list="standList" placeholder="Which camera?"></div>
 <div><label for="camTag">Tag new uploads as</label><select id="camTag"><option value="buck">Buck</option><option value="doe">Doe</option><option value="other">Other / unknown</option></select></div>
 </div>
-<p class="note">Photos are shrunk to about 1200px and stored on this phone only (they don't sync). Date comes from the file; tap a photo to correct it or add notes.</p>
+<p class="note">Photos are shrunk to about 1200px and saved to your account; your group sees them too. Date comes from the file; tap a photo to correct it or add notes.</p>
 <div class="chips" id="camFilters"></div>
 <div id="camSummary" class="muted"></div>
 <div class="gallery" id="gallery"></div>
@@ -191,24 +219,27 @@ a{color:var(--green)}
 <p class="note">Dark is easier on the eyes in the stand before daylight.</p>
 </section>
 
-<section class="card"><h2>Share with hunting partners</h2>
-<p class="muted" style="margin-top:0">Optional. Everyone in your group enters the same group code plus the URL and key of one free Supabase project (setup steps in the README). Hunts sync both ways; photos stay on each phone.</p>
+<section class="card"><h2>Account</h2>
 <div class="grid">
-<div><label for="hunterName">Your name</label><input id="hunterName" placeholder="Chad"></div>
-<div><label for="groupCode">Group code</label><input id="groupCode" placeholder="e.g. redriver2026"></div>
-<div class="span2"><label for="sbUrl">Supabase project URL</label><input id="sbUrl" placeholder="https://xxxx.supabase.co"></div>
-<div class="span2"><label for="sbKey">Supabase anon key</label><input id="sbKey" placeholder="eyJ…"></div>
+<div><label for="profName">Your name</label><input id="profName" placeholder="Shown to partners"></div>
+<div><label>Email</label><input id="profEmail" disabled></div>
+<div><label for="newPass">New password</label><input id="newPass" type="password" autocomplete="new-password" placeholder="Leave blank to keep"></div>
+<div><label>&nbsp;</label><button class="secondary" onclick="saveProfile()">Save changes</button></div>
 </div>
-<div class="actions"><button class="secondary" onclick="saveSync()">Save settings</button><button onclick="syncNow()">Sync now</button></div>
-<div class="chips" style="margin-top:12px"><button class="chip" id="partnersChip" onclick="togglePartners()">Include partners' hunts in stats</button></div>
+<div class="actions"><button class="secondary" onclick="syncNow()">Sync now</button><button class="danger" onclick="signOut()">Sign out</button></div>
 <div id="syncStatus" class="note"></div>
 </section>
 
+<section class="card"><h2>Hunting group</h2>
+<p class="muted" style="margin-top:0">Everyone in a group sees each other's hunts and cam photos. Make up a code and share it with your partners, or enter the one they gave you.</p>
+<div id="groupBox"></div>
+</section>
+
 <section class="card"><h2>Backup</h2>
-<p class="muted" style="margin-top:0">Hunts and cam photos live in this browser. Back up to a file now and then; restore on a new phone or after clearing browser data.</p>
+<p class="muted" style="margin-top:0">Everything is saved to your account, so this is just a belt-and-suspenders copy. Restore merges a backup into your account.</p>
 <div class="actions"><button class="secondary" onclick="exportJSON()">Back up (JSON)</button><button class="secondary" onclick="$('importFile').click()">Restore</button><button class="secondary" onclick="exportCSV()">Export CSV</button></div>
 <input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importJSON(this.files[0])">
-<div class="actions"><button class="danger" onclick="deleteAll()">Delete all hunts</button></div>
+<div class="actions"><button class="danger" onclick="deleteAll()">Delete all my hunts</button></div>
 <p class="muted" style="text-align:center;margin-top:24px">Splitting lease or feed costs? Venmo <a href="https://venmo.com/u/chadhoot1978" target="_blank" rel="noopener" style="font-weight:700">@chadhoot1978</a></p>
 </section>
 </section>
@@ -226,22 +257,146 @@ a{color:var(--green)}
 <div id="toast" class="toast"></div>
 
 <script>
+/* ======================= config ======================= */
+// Fill these in from your Supabase project (Settings → API). The anon key is meant to be public;
+// row-level security in the database is what protects each user's data.
+const CONFIG={url:'https://YOUR-PROJECT.supabase.co',key:'YOUR-ANON-KEY'};
+
 /* ======================= state ======================= */
-const KEY='whitetailTrackerV2', SKEY='whitetailSettings';
 const $=id=>document.getElementById(id);
 const SYN=29.530588853;
 const DIRS=['N','NE','E','SE','S','SW','W','NW'];
-let hunts=load(KEY,[]), partnerHunts=load(KEY+'_partners',[]), settings=load(SKEY,{});
-let gps=null,weatherData=null,editingId=null,toastTimer=null,pendingPhotos=[],scoreSort='rate',roseStand=null,camFilter='all';
+const SESSION_KEY='wt_session',SKEY='whitetailSettings',LEGACY_KEY='whitetailTrackerV2';
+let session=load(SESSION_KEY,null),me=null,profile=null,members=[];
+let hunts=[],partnerHunts=[],deletedHunts=[],deletedPhotos=[],settings=load(SKEY,{});
+let gps=null,weatherData=null,editingId=null,toastTimer=null,pendingPhotos=[],scoreSort='rate',roseStand=null,camFilter='all',syncing=false;
 const today=localDate(new Date());
+const configured=()=>CONFIG.url.startsWith('https://')&&!CONFIG.url.includes('YOUR-')&&CONFIG.key.length>20;
 
 function localDate(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
 function load(k,fb){try{const v=JSON.parse(localStorage.getItem(k));return v??fb}catch{return fb}}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(hunts));localStorage.setItem(KEY+'_partners',JSON.stringify(partnerHunts))}catch{toast('Could not save — storage is full or blocked')}}
+function uk(k){return 'wt_'+k+'_'+(me?me.id:'anon')}
+function loadUserData(){hunts=load(uk('hunts'),[]);partnerHunts=load(uk('partners'),[]);deletedHunts=load(uk('delh'),[]);deletedPhotos=load(uk('delp'),[])}
+function persist(){try{localStorage.setItem(uk('hunts'),JSON.stringify(hunts));localStorage.setItem(uk('partners'),JSON.stringify(partnerHunts));localStorage.setItem(uk('delh'),JSON.stringify(deletedHunts));localStorage.setItem(uk('delp'),JSON.stringify(deletedPhotos))}catch{toast('Could not save — storage is full or blocked')}}
 function saveSettings(){localStorage.setItem(SKEY,JSON.stringify(settings))}
 function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2400)}
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const isOwn=h=>!!me&&h.user_id===me.id;
 
+/* ======================= auth (Supabase GoTrue via REST) ======================= */
+let authM='in';
+function authMode(m){authM=m;$('tabIn').classList.toggle('on',m==='in');$('tabUp').classList.toggle('on',m==='up');$('nameField').style.display=m==='up'?'':'none';$('authBtn').textContent=m==='up'?'Create account':'Sign in';$('forgotBtn').style.display=m==='up'?'none':'';$('aPass').autocomplete=m==='up'?'new-password':'current-password';authMsg('')}
+function authMsg(t,ok){$('authMsg').textContent=t;$('authMsg').classList.toggle('ok',!!ok)}
+function saveSession(s){session=s;if(s)localStorage.setItem(SESSION_KEY,JSON.stringify(s));else localStorage.removeItem(SESSION_KEY)}
+async function authFetch(path,opts={}){
+  const headers={'apikey':CONFIG.key,'Content-Type':'application/json',...(opts.headers||{})};
+  if(session?.access_token&&!headers.Authorization)headers.Authorization='Bearer '+session.access_token;
+  return fetch(CONFIG.url+path,{...opts,headers});
+}
+async function authSubmit(){
+  if(!configured()){authMsg('App is not connected to a database yet.');return}
+  const email=$('aEmail').value.trim(),password=$('aPass').value,name=$('aName').value.trim();
+  if(!email||!password){authMsg('Enter your email and password.');return}
+  if(authM==='up'&&!name){authMsg('Enter your name.');return}
+  $('authBtn').disabled=true;authMsg('');
+  try{
+    if(authM==='up'){
+      const r=await authFetch('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password,data:{name}})});
+      const j=await r.json();
+      if(!r.ok)throw new Error(j.msg||j.error_description||j.message||'Sign-up failed');
+      if(j.access_token){saveSession(j);await afterSignIn()}
+      else authMsg('Account created. Check your email for a confirmation link, then sign in.',true);
+    }else{
+      const r=await authFetch('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+      const j=await r.json();
+      if(!r.ok)throw new Error(j.error_description||j.msg||j.message||'Sign-in failed');
+      saveSession(j);await afterSignIn();
+    }
+  }catch(e){authMsg(e.message.replace('Invalid login credentials','Wrong email or password.'))}
+  $('authBtn').disabled=false;
+}
+async function forgotPassword(){
+  const email=$('aEmail').value.trim();if(!email){authMsg('Enter your email first, then tap Forgot password.');return}
+  const r=await authFetch('/auth/v1/recover',{method:'POST',body:JSON.stringify({email})});
+  authMsg(r.ok?'Reset link sent — check your email.':'Could not send a reset link.',r.ok);
+}
+async function ensureFreshSession(){
+  if(!session)return false;
+  const exp=session.expires_at?session.expires_at*1000:0;
+  if(exp&&exp-Date.now()>60000)return true;
+  try{
+    const r=await authFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token}),headers:{Authorization:''}});
+    const j=await r.json();if(!r.ok)throw 0;saveSession(j);return true;
+  }catch{if(!navigator.onLine)return true;return false}
+}
+async function api(path,opts={}){
+  if(!await ensureFreshSession()){signOut(true);throw new Error('Signed out')}
+  const r=await authFetch('/rest/v1/'+path,opts);
+  if(r.status===401){signOut(true);throw new Error('Session expired — sign in again')}
+  return r;
+}
+async function afterSignIn(){
+  me=session.user;loadUserData();
+  $('auth').classList.remove('show');
+  migrateLegacy();
+  renderAll();
+  $('profEmail').value=me.email||'';
+  await syncNow(true);
+  renderAll();
+}
+async function signOut(silent){
+  if(session&&!silent&&navigator.onLine)authFetch('/auth/v1/logout',{method:'POST'}).catch(()=>{});
+  saveSession(null);me=null;profile=null;members=[];hunts=[];partnerHunts=[];clearFormQuiet();
+  $('auth').classList.add('show');authMode('in');$('aPass').value='';
+  if(!silent)toast('Signed out');
+}
+async function handleRecoveryLink(){
+  const h=new URLSearchParams(location.hash.replace(/^#/,''));
+  if(h.get('type')!=='recovery'||!h.get('access_token'))return false;
+  saveSession({access_token:h.get('access_token'),refresh_token:h.get('refresh_token'),expires_at:Math.floor(Date.now()/1000)+(+h.get('expires_in')||3600),user:null});
+  history.replaceState(null,'',location.pathname);
+  const pw=prompt('Enter a new password (at least 6 characters):');
+  if(pw&&pw.length>=6){const r=await authFetch('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:pw})});if(r.ok){const u=await r.json();session.user=u;saveSession(session);toast('Password updated');return true}}
+  saveSession(null);toast('Password not changed');return false;
+}
+// Hunts logged on this phone before accounts existed get moved into the account once.
+function migrateLegacy(){
+  const old=load(LEGACY_KEY,null);if(!Array.isArray(old)||!old.length)return;
+  const have=new Set(hunts.map(h=>h.id));let n=0;
+  old.forEach(h=>{if(h?.date&&!have.has(h.id)){hunts.push({...h,user_id:me.id,hunter:h.hunter||'',dirty:true});n++}});
+  localStorage.removeItem(LEGACY_KEY);persist();if(n)toast(`Moved ${n} hunt${n===1?'':'s'} from this phone into your account`);
+}
+
+/* ======================= profile & group ======================= */
+function renderGroup(){
+  const g=profile?.group_code;
+  if(!$('groupBox'))return;
+  if(g){
+    const list=members.filter(m=>m.id!==me?.id);
+    $('groupBox').innerHTML=`<div class="kv"><span>Group code</span><b>${esc(g)}</b></div><div class="members">${members.map(m=>`<div>${esc(m.name||'(no name)')}${m.id===me?.id?'<span class="pill">you</span>':''}</div>`).join('')}</div>${list.length?'':'<p class="note">Nobody else has joined yet. Send your partners the code.</p>'}<div class="chips" style="margin-top:12px"><button class="chip" id="partnersChip" onclick="togglePartners()">Include partners' hunts in stats</button></div><div class="actions"><button class="secondary" onclick="leaveGroup()">Leave group</button></div>`;
+    $('partnersChip').classList.toggle('on',!!settings.partners);
+  }else{
+    $('groupBox').innerHTML=`<div class="grid"><div><label for="joinCode">Group code</label><input id="joinCode" placeholder="e.g. redriver2026" autocapitalize="none"></div><div><label>&nbsp;</label><button onclick="joinGroup()">Join or create group</button></div></div>`;
+  }
+}
+async function joinGroup(){
+  const code=$('joinCode').value.trim().toLowerCase().replace(/\s+/g,'-');if(code.length<4){toast('Use at least 4 characters');return}
+  try{const r=await api('profiles?id=eq.'+me.id,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify({group_code:code})});if(!r.ok)throw 0;profile={...profile,group_code:code};settings.partners=true;saveSettings();toast('Joined '+code);await syncNow(true);renderAll()}catch{toast('Could not join — check your connection')}
+}
+async function leaveGroup(){
+  if(!confirm('Leave this group? Your hunts stay yours; you just stop sharing.'))return;
+  try{const r=await api('profiles?id=eq.'+me.id,{method:'PATCH',body:JSON.stringify({group_code:null})});if(!r.ok)throw 0;profile={...profile,group_code:null};partnerHunts=[];members=members.filter(m=>m.id===me.id);persist();renderAll();toast('Left the group')}catch{toast('Could not leave — check your connection')}
+}
+function togglePartners(){settings.partners=!settings.partners;saveSettings();renderAll()}
+async function saveProfile(){
+  const name=$('profName').value.trim(),pw=$('newPass').value;
+  try{
+    if(name&&name!==profile?.name){const r=await api('profiles?id=eq.'+me.id,{method:'PATCH',body:JSON.stringify({name})});if(!r.ok)throw new Error('name');profile={...profile,name};hunts.forEach(h=>{if(h.hunter!==name){h.hunter=name;h.dirty=true}});persist()}
+    if(pw){if(pw.length<6){toast('Password needs at least 6 characters');return}const r=await authFetch('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:pw})});if(!r.ok)throw new Error('password');$('newPass').value=''}
+    toast('Saved');await syncNow(true);renderAll();
+  }catch(e){toast('Could not update '+e.message)}
+}
 /* ======================= seasons ======================= */
 function seasonOf(dateStr){const [y,m]=dateStr.split('-').map(Number);return m>=8?y:y-1}
 function seasonLabel(y){return `${y}–${String(y+1).slice(2)} season`}
@@ -355,108 +510,17 @@ ${s?`<div class="weatheritem"><small>Temp on stand</small><b>${s.temp==null?'—
 $('date').addEventListener('change',()=>{if(gps)loadAutoData()});
 ['start','end'].forEach(id=>$(id).addEventListener('change',()=>{if(weatherData?.hourly){computeSit();renderAuto()}}));
 
-/* ======================= photos (IndexedDB) ======================= */
-let dbp=null;
-function db(){if(dbp)return dbp;dbp=new Promise((res,rej)=>{const r=indexedDB.open('whitetail',1);r.onupgradeneeded=()=>{r.result.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return dbp}
-async function dbAll(){const d=await db();return new Promise((res,rej)=>{const r=d.transaction('photos').objectStore('photos').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-async function dbPut(p){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').put(p);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
-async function dbDel(id){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
-async function dbClear(){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').clear();t.oncomplete=res;t.onerror=()=>rej(t.error)})}
-function shrink(file,max=1200,q=.72){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',q))};im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('bad image'))};im.src=url})}
-function fileDateTime(f){const d=new Date(f.lastModified||Date.now());return {date:localDate(d),time:d.toTimeString().slice(0,5)}}
-const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-
-async function addHuntPhotos(files){
-  for(const f of files){try{const data=await shrink(f);const dt=fileDateTime(f);pendingPhotos.push({id:newId('p'),data,date:$('date').value||dt.date,time:dt.time,stand:$('stand').value,area:$('area').value,tag:'hunt',notes:'',huntId:editingId,src:'hunt'})}catch{toast('Could not read one of the photos')}}
-  $('huntPhotoInput').value='';renderHuntThumbs();
-}
-function renderHuntThumbs(){$('huntThumbs').innerHTML=pendingPhotos.map(p=>`<img src="${p.data}" alt="" onclick="openPhoto('${p.id}',true)">`).join('')+`<div class="add" onclick="$('huntPhotoInput').click()">＋</div>`}
-async function loadHuntPhotos(id){const all=await dbAll().catch(()=>[]);pendingPhotos=all.filter(p=>p.huntId===id);renderHuntThumbs()}
-
-async function addCamPhotos(files){
-  const stand=$('camStand').value.trim(),tag=$('camTag').value;let n=0;
-  for(const f of files){try{const data=await shrink(f);const dt=fileDateTime(f);await dbPut({id:newId('c'),data,date:dt.date,time:dt.time,stand,area:'',tag,notes:'',huntId:null,src:'cam'});n++}catch{}}
-  $('camInput').value='';toast(`Added ${n} photo${n===1?'':'s'}`);renderGallery();
-}
-async function renderGallery(){
-  const all=(await dbAll().catch(()=>[])).filter(p=>p.src==='cam');
-  const stands=[...new Set(all.map(p=>p.stand).filter(Boolean))].sort();
-  $('camFilters').innerHTML=[['all','All'],['buck','Bucks'],['doe','Does'],['other','Other']].map(([v,l])=>`<button class="chip ${camFilter===v?'on':''}" onclick="camFilter='${v}';renderGallery()">${l}</button>`).join('')+stands.map((s,i)=>`<button class="chip ${camFilter==='s:'+s?'on':''}" onclick="camFilter='s:'+camStands[${i}];renderGallery()">${esc(s)}</button>`).join('');
-  window.camStands=stands;
-  const inSeason=p=>{const s=$('season').value;return s==='all'||seasonOf(p.date)===+s};
-  const season=all.filter(inSeason);let list=season;
-  if(camFilter.startsWith('s:'))list=list.filter(p=>p.stand===camFilter.slice(2));else if(camFilter!=='all')list=list.filter(p=>p.tag===camFilter);
-  list.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
-  $('camSummary').textContent=all.length?`${season.length} photos this season, ${season.filter(p=>p.tag==='buck').length} tagged buck.${stands.length?' Bucks by camera: '+stands.map(s=>`${s} ${season.filter(p=>p.stand===s&&p.tag==='buck').length}`).join(', '):''}`:'No cam photos yet. Add a pull from your SD card or your camera app.';
-  $('gallery').innerHTML=list.map(p=>`<figure onclick="openPhoto('${p.id}')"><img src="${p.data}" alt="" loading="lazy"><figcaption>${p.tag==='buck'?'🦌 ':''}${fmtDate(p.date)}${p.stand?' · '+esc(p.stand):''}</figcaption></figure>`).join('');
-}
-async function openPhoto(id,pending){
-  const p=pending?pendingPhotos.find(x=>x.id===id):(await dbAll()).find(x=>x.id===id);if(!p)return;
-  $('sheet').innerHTML=`<img src="${p.data}" alt="">
-<div class="grid" style="margin-top:12px">
-<div><label>Date</label><input id="phDate" type="date" value="${p.date||''}"></div>
-<div><label>Time</label><input id="phTime" type="time" value="${p.time||''}"></div>
-<div><label>Camera / stand</label><input id="phStand" list="standList" value="${esc(p.stand||'')}"></div>
-<div><label>Tag</label><select id="phTag"><option value="buck" ${p.tag==='buck'?'selected':''}>Buck</option><option value="doe" ${p.tag==='doe'?'selected':''}>Doe</option><option value="other" ${p.tag==='other'?'selected':''}>Other</option><option value="hunt" ${p.tag==='hunt'?'selected':''}>Hunt photo</option></select></div>
-<div class="span2"><label>Notes</label><input id="phNotes" value="${esc(p.notes||'')}" placeholder="8 pt, split G2, showed at 6:40…"></div>
-</div>
-<div class="actions"><button onclick="savePhoto('${p.id}',${!!pending})">Save</button><button class="secondary" onclick="closeModal()">Close</button><button class="danger" onclick="deletePhoto('${p.id}',${!!pending})">Delete</button></div>`;
-  $('modal').classList.add('show');
-}
-async function savePhoto(id,pending){
-  const upd={date:$('phDate').value,time:$('phTime').value,stand:$('phStand').value.trim(),tag:$('phTag').value,notes:$('phNotes').value.trim()};
-  if(pending){Object.assign(pendingPhotos.find(x=>x.id===id),upd)}else{const p=(await dbAll()).find(x=>x.id===id);await dbPut({...p,...upd})}
-  closeModal();toast('Photo updated');renderGallery();renderHuntThumbs();
-}
-async function deletePhoto(id,pending){
-  if(!confirm('Delete this photo?'))return;
-  if(pending)pendingPhotos=pendingPhotos.filter(x=>x.id!==id);
-  await dbDel(id).catch(()=>{});closeModal();renderGallery();renderHuntThumbs();
-}
-function closeModal(){$('modal').classList.remove('show')}
-
-/* ======================= save / edit ======================= */
-async function saveHunt(){
-  const date=$('date').value;
-  if(!date){toast('Enter a hunt date');return}
-  if(!weatherData)weatherData={moon:phaseForDate(date)};
-  if(weatherData.hourly)computeSit();
-  const {hourly,...wSave}=weatherData; // don't store the full hourly series
-  const h={id:editingId??Date.now(),hunter:settings.hunterName||'',area:$('area').value.trim(),stand:$('stand').value.trim(),date,start:$('start').value,end:$('end').value,bucks:Math.max(0,+($('bucks').value||0)),does:Math.max(0,+($('does').value||0)),buckNotes:$('buckNotes').value.trim(),comments:$('comments').value.trim(),gps,weather:wSave,photos:pendingPhotos.length,updated:Date.now()};
-  if(editingId!=null){hunts=hunts.map(x=>x.id===editingId?h:x);toast('Hunt updated')}else{hunts.push(h);toast('Hunt saved')}
-  for(const p of pendingPhotos){await dbPut({...p,huntId:h.id,stand:p.stand||h.stand,area:h.area}).catch(()=>{})}
-  persist();clearForm();renderAll();
-  if(settings.sbUrl&&settings.groupCode)syncNow(true);
-}
-function editHunt(id){
-  const h=hunts.find(x=>x.id===id);if(!h){toast("Partners' hunts can't be edited here");return}
-  editingId=id;
-  $('area').value=h.area||'';$('stand').value=h.stand||'';$('date').value=h.date||today;$('start').value=h.start||'';$('end').value=h.end||'';
-  $('bucks').value=h.bucks||'';$('does').value=h.does||'';$('buckNotes').value=h.buckNotes||'';$('comments').value=h.comments||'';
-  gps=h.gps||null;weatherData=h.weather||null;setLocBtn();renderAuto();loadHuntPhotos(id);
-  $('formTitle').textContent='Edit hunt';$('saveBtn').textContent='Update hunt';
-  showPage('log');render();
-}
-function clearForm(){
-  editingId=null;pendingPhotos=[];renderHuntThumbs();
-  ['area','stand','start','end','bucks','does','buckNotes','comments'].forEach(id=>$(id).value='');
-  $('date').value=today;gps=null;weatherData=null;setLocBtn();renderAuto();
-  $('formTitle').textContent='New hunt';$('saveBtn').textContent='Save hunt';render();
-}
-async function del(id){if(confirm('Delete this hunt and its photos?')){hunts=hunts.filter(x=>x.id!==id);persist();const ph=(await dbAll().catch(()=>[])).filter(p=>p.huntId===id);for(const p of ph)await dbDel(p.id).catch(()=>{});if(editingId===id)clearForm();renderAll();toast('Hunt deleted');if(settings.sbUrl)sbDelete(id)}}
-async function deleteAll(){if(hunts.length&&confirm('Delete ALL your hunts and photos on this phone? Back up first if you want to keep them.')){hunts=[];persist();await dbClear().catch(()=>{});clearForm();renderAll()}}
-
 /* ======================= render ======================= */
 function fmtDate(s){if(!s)return '—';const [y,m,d]=s.split('-');return `${+m}/${+d}/${y.slice(2)}`}
 function fmtTime(t){if(!t)return '';const [h,m]=t.split(':');const H=+h;return `${H%12||12}:${m}${H<12?'a':'p'}`}
 function rate(h){const hrs=sitHours(h);return hrs?(h.bucks+h.does)/hrs:null}
-function renderAll(){buildSeasonSelect();render();renderRutMini();if($('page-insights').classList.contains('active'))renderInsights();if($('page-cam').classList.contains('active'))renderGallery()}
+function renderAll(){buildSeasonSelect();render();renderRutMini();renderGroup();if($('page-insights').classList.contains('active'))renderInsights();if($('page-cam').classList.contains('active'))renderGallery()}
 function render(){
   const q=$('search').value.trim().toLowerCase(),sort=$('sort').value;
   let f=seasonHunts().filter(h=>`${h.area} ${h.stand} ${h.comments} ${h.buckNotes} ${h.hunter}`.toLowerCase().includes(q));
   const byDate=(a,b)=>b.date.localeCompare(a.date)||b.id-a.id;
   f.sort((a,b)=>sort==='bucks'?(b.bucks-a.bucks)||byDate(a,b):sort==='deer'?((b.bucks+b.does)-(a.bucks+a.does))||byDate(a,b):sort==='rate'?((rate(b)||0)-(rate(a)||0))||byDate(a,b):byDate(a,b));
-  $('rows').innerHTML=f.length?f.map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date),s=w.sit,own=hunts.includes(h);
+  $('rows').innerHTML=f.length?f.map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date),s=w.sit,own=isOwn(h);
     const time=h.start||h.end?`${fmtTime(h.start)}–${fmtTime(h.end)}`:'—';
     const map=h.gps?`<a class="mini secondary" href="https://maps.google.com/?q=${h.gps.lat},${h.gps.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Map</a>`:'';
     return `<tr class="row${h.id===editingId?' editing':''}" onclick="editHunt(${h.id})" title="${esc(h.comments)}"><td>${fmtDate(h.date)}</td><td>${esc(h.hunter)||'—'}</td><td>${esc(h.area)||'—'}</td><td>${esc(h.stand)||'—'}</td><td>${time}</td><td><b>${h.bucks}</b>${h.photos?' 📷':''}</td><td>${h.does}</td><td>${w.high!=null?Math.round(w.high)+'°/'+Math.round(w.low)+'° '+weatherName(w.code):'—'}</td><td>${s?.wind!=null?Math.round(s.wind)+' '+compass(s.windDir):w.wind!=null?Math.round(w.wind)+' '+compass(w.windDir):'—'}</td><td>${s?.trend||'—'}</td><td>${m.icon} ${m.name}</td><td>${map}${own?`<button class="danger mini" onclick="event.stopPropagation();del(${h.id})">Delete</button>`:''}</td></tr>`}).join('')
@@ -465,7 +529,7 @@ function render(){
   const b=sh.reduce((a,h)=>a+(h.bucks||0),0),d=sh.reduce((a,h)=>a+(h.does||0),0),hrs=sh.reduce((a,h)=>a+(sitHours(h)||0),0);
   $('nHunts').textContent=sh.length;$('nBucks').textContent=b;$('nDoes').textContent=d;$('nRate').textContent=hrs?((b+d)/hrs).toFixed(2):'—';
   fillList('areaList',allHunts().map(h=>h.area));fillList('standList',allHunts().map(h=>h.stand));
-  $('partnersChip').classList.toggle('on',!!settings.partners);
+  
 }
 function fillList(id,vals){$(id).innerHTML=[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${esc(v)}">`).join('')}
 
@@ -537,43 +601,165 @@ function renderInsights(){
   }).join('')||'<div class="muted">Nothing yet.</div>';
 }
 
-/* ======================= sync (Supabase, optional) ======================= */
-function loadSyncForm(){$('hunterName').value=settings.hunterName||'';$('groupCode').value=settings.groupCode||'';$('sbUrl').value=settings.sbUrl||'';$('sbKey').value=settings.sbKey||''}
-function saveSync(){settings.hunterName=$('hunterName').value.trim();settings.groupCode=$('groupCode').value.trim();settings.sbUrl=$('sbUrl').value.trim().replace(/\/$/,'');settings.sbKey=$('sbKey').value.trim();saveSettings();toast('Settings saved')}
-function togglePartners(){settings.partners=!settings.partners;saveSettings();renderAll()}
-function sbHeaders(extra={}){return {'apikey':settings.sbKey,'Authorization':'Bearer '+settings.sbKey,'Content-Type':'application/json',...extra}}
-async function syncNow(quiet){
-  if(!settings.sbUrl||!settings.sbKey||!settings.groupCode){if(!quiet)toast('Fill in the sharing settings first');return}
-  if(!navigator.onLine){if(!quiet)toast('Offline — will sync later');return}
-  $('syncStatus').textContent='Syncing…';
-  try{
-    const base=settings.sbUrl+'/rest/v1/hunts';
-    if(hunts.length){
-      const body=hunts.map(h=>({id:h.id,group_code:settings.groupCode,hunter:h.hunter||settings.hunterName||'',data:h,updated_at:new Date(h.updated||h.id).toISOString()}));
-      const r=await fetch(base+'?on_conflict=group_code,id',{method:'POST',headers:sbHeaders({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(body)});
-      if(!r.ok)throw new Error('push failed — '+(await r.text()).slice(0,140));
-    }
-    const r2=await fetch(base+'?group_code=eq.'+encodeURIComponent(settings.groupCode)+'&select=id,hunter,data',{headers:sbHeaders()});
-    if(!r2.ok)throw new Error('pull failed — '+(await r2.text()).slice(0,140));
-    const rows=await r2.json(),mine=new Set(hunts.map(h=>h.id));
-    partnerHunts=rows.filter(x=>!mine.has(x.id)&&x.data?.date).map(x=>({...x.data,hunter:x.hunter||x.data.hunter||'Partner',id:x.id}));
-    persist();renderAll();
-    $('syncStatus').innerHTML=`<span class="ok">Synced</span> ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})} — ${hunts.length} of yours, ${partnerHunts.length} from partners.`;
-    if(!quiet)toast('Synced');
-  }catch(e){$('syncStatus').textContent='Sync '+e.message;if(!quiet)toast('Sync failed')}
+/* ======================= photos (IndexedDB cache + server) ======================= */
+let dbp=null;
+function db(){if(dbp)return dbp;dbp=new Promise((res,rej)=>{const r=indexedDB.open('whitetail2',1);r.onupgradeneeded=()=>{r.result.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return dbp}
+async function dbAll(){const d=await db();return new Promise((res,rej)=>{const r=d.transaction('photos').objectStore('photos').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbPut(p){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').put(p);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+async function dbDel(id){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+// Photos visible to this signed-in user (own + group), from the local cache.
+async function myPhotos(){const all=await dbAll().catch(()=>[]);return me?all.filter(p=>p.user_id===me.id||(settings.partners&&p.user_id!==me.id&&p.group===profile?.group_code)):[]}
+function shrink(file,max=1200,q=.72){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',q))};im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('bad image'))};im.src=url})}
+function fileDateTime(f){const d=new Date(f.lastModified||Date.now());return {date:localDate(d),time:d.toTimeString().slice(0,5)}}
+function photoRow(p){const {id,user_id,huntId,pending,group,...data}=p;return {id,hunt_id:huntId??null,data,updated_at:new Date().toISOString()}}
+
+async function addHuntPhotos(files){
+  for(const f of files){try{const data=await shrink(f);const dt=fileDateTime(f);pendingPhotos.push({id:newId('p'),user_id:me.id,data,date:$('date').value||dt.date,time:dt.time,stand:$('stand').value,area:$('area').value,tag:'hunt',notes:'',huntId:editingId,src:'hunt',pending:true})}catch{toast('Could not read one of the photos')}}
+  $('huntPhotoInput').value='';renderHuntThumbs();
 }
-async function sbDelete(id){try{await fetch(settings.sbUrl+'/rest/v1/hunts?group_code=eq.'+encodeURIComponent(settings.groupCode)+'&id=eq.'+id,{method:'DELETE',headers:sbHeaders()})}catch{}}
+function renderHuntThumbs(){$('huntThumbs').innerHTML=pendingPhotos.map(p=>`<img src="${p.data}" alt="" onclick="openPhoto('${p.id}',true)">`).join('')+`<div class="add" onclick="$('huntPhotoInput').click()">＋</div>`}
+async function loadHuntPhotos(id){pendingPhotos=(await myPhotos()).filter(p=>p.huntId===id&&p.user_id===me.id);renderHuntThumbs()}
+
+async function addCamPhotos(files){
+  const stand=$('camStand').value.trim(),tag=$('camTag').value;let n=0;
+  for(const f of files){try{const data=await shrink(f);const dt=fileDateTime(f);await dbPut({id:newId('c'),user_id:me.id,hunter:profile?.name||'',data,date:dt.date,time:dt.time,stand,area:'',tag,notes:'',huntId:null,src:'cam',pending:true});n++}catch{}}
+  $('camInput').value='';toast(`Added ${n} photo${n===1?'':'s'}`);renderGallery();syncNow(true);
+}
+async function renderGallery(){
+  const all=(await myPhotos()).filter(p=>p.src==='cam');
+  const stands=[...new Set(all.map(p=>p.stand).filter(Boolean))].sort();window.camStands=stands;
+  $('camFilters').innerHTML=[['all','All'],['buck','Bucks'],['doe','Does'],['other','Other']].map(([v,l])=>`<button class="chip ${camFilter===v?'on':''}" onclick="camFilter='${v}';renderGallery()">${l}</button>`).join('')+stands.map((s,i)=>`<button class="chip ${camFilter==='s:'+s?'on':''}" onclick="camFilter='s:'+camStands[${i}];renderGallery()">${esc(s)}</button>`).join('');
+  const inSeason=p=>{const s=$('season').value;return s==='all'||seasonOf(p.date)===+s};
+  const season=all.filter(inSeason);let list=season;
+  if(camFilter.startsWith('s:'))list=list.filter(p=>p.stand===camFilter.slice(2));else if(camFilter!=='all')list=list.filter(p=>p.tag===camFilter);
+  list.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  $('camSummary').textContent=all.length?`${season.length} photos this season, ${season.filter(p=>p.tag==='buck').length} tagged buck.${stands.length?' Bucks by camera: '+stands.map(s=>`${s} ${season.filter(p=>p.stand===s&&p.tag==='buck').length}`).join(', '):''}`:'No cam photos yet. Add a pull from your SD card or your camera app.';
+  $('gallery').innerHTML=list.map(p=>`<figure onclick="openPhoto('${p.id}')"><img src="${p.data}" alt="" loading="lazy"><figcaption>${p.tag==='buck'?'🦌 ':''}${fmtDate(p.date)}${p.stand?' · '+esc(p.stand):''}${!isOwn(p)&&p.hunter?' · '+esc(p.hunter):''}</figcaption></figure>`).join('');
+}
+async function openPhoto(id,pending){
+  const p=pending?pendingPhotos.find(x=>x.id===id):(await myPhotos()).find(x=>x.id===id);if(!p)return;
+  const own=pending||isOwn(p),dis=own?'':'disabled';
+  $('sheet').innerHTML=`<img src="${p.data}" alt="">
+<div class="grid" style="margin-top:12px">
+<div><label>Date</label><input id="phDate" type="date" value="${p.date||''}" ${dis}></div>
+<div><label>Time</label><input id="phTime" type="time" value="${p.time||''}" ${dis}></div>
+<div><label>Camera / stand</label><input id="phStand" list="standList" value="${esc(p.stand||'')}" ${dis}></div>
+<div><label>Tag</label><select id="phTag" ${dis}><option value="buck" ${p.tag==='buck'?'selected':''}>Buck</option><option value="doe" ${p.tag==='doe'?'selected':''}>Doe</option><option value="other" ${p.tag==='other'?'selected':''}>Other</option><option value="hunt" ${p.tag==='hunt'?'selected':''}>Hunt photo</option></select></div>
+<div class="span2"><label>Notes</label><input id="phNotes" value="${esc(p.notes||'')}" placeholder="8 pt, split G2, showed at 6:40…" ${dis}></div>
+</div>
+${own?`<div class="actions"><button onclick="savePhoto('${p.id}',${!!pending})">Save</button><button class="secondary" onclick="closeModal()">Close</button><button class="danger" onclick="deletePhoto('${p.id}',${!!pending})">Delete</button></div>`:`<p class="note">Shared by ${esc(p.hunter||'a partner')}.</p><div class="actions"><button class="secondary" onclick="closeModal()">Close</button></div>`}`;
+  $('modal').classList.add('show');
+}
+async function savePhoto(id,pending){
+  const upd={date:$('phDate').value,time:$('phTime').value,stand:$('phStand').value.trim(),tag:$('phTag').value,notes:$('phNotes').value.trim()};
+  if(pending){Object.assign(pendingPhotos.find(x=>x.id===id),upd)}else{const p=(await dbAll()).find(x=>x.id===id);await dbPut({...p,...upd,pending:true});syncNow(true)}
+  closeModal();toast('Photo updated');renderGallery();renderHuntThumbs();
+}
+async function deletePhoto(id,pending){
+  if(!confirm('Delete this photo?'))return;
+  if(pending)pendingPhotos=pendingPhotos.filter(x=>x.id!==id);
+  await dbDel(id).catch(()=>{});if(!pending){deletedPhotos.push(id);persist();syncNow(true)}
+  closeModal();renderGallery();renderHuntThumbs();
+}
+function closeModal(){$('modal').classList.remove('show')}
+
+/* ======================= save / edit ======================= */
+async function saveHunt(){
+  const date=$('date').value;
+  if(!date){toast('Enter a hunt date');return}
+  if(!weatherData)weatherData={moon:phaseForDate(date)};
+  if(weatherData.hourly)computeSit();
+  const {hourly,...wSave}=weatherData;
+  const h={id:editingId??Date.now(),user_id:me.id,hunter:profile?.name||'',area:$('area').value.trim(),stand:$('stand').value.trim(),date,start:$('start').value,end:$('end').value,bucks:Math.max(0,+($('bucks').value||0)),does:Math.max(0,+($('does').value||0)),buckNotes:$('buckNotes').value.trim(),comments:$('comments').value.trim(),gps,weather:wSave,photos:pendingPhotos.length,updated:Date.now(),dirty:true};
+  if(editingId!=null){hunts=hunts.map(x=>x.id===editingId?h:x);toast('Hunt updated')}else{hunts.push(h);toast('Hunt saved')}
+  for(const p of pendingPhotos){await dbPut({...p,huntId:h.id,stand:p.stand||h.stand,area:h.area,hunter:h.hunter,pending:p.pending||!!p.dirty}).catch(()=>{})}
+  persist();clearForm();renderAll();syncNow(true);
+}
+function editHunt(id){
+  const h=hunts.find(x=>x.id===id);if(!h){toast("Partners' hunts can't be edited");return}
+  editingId=id;
+  $('area').value=h.area||'';$('stand').value=h.stand||'';$('date').value=h.date||today;$('start').value=h.start||'';$('end').value=h.end||'';
+  $('bucks').value=h.bucks||'';$('does').value=h.does||'';$('buckNotes').value=h.buckNotes||'';$('comments').value=h.comments||'';
+  gps=h.gps||null;weatherData=h.weather||null;setLocBtn();renderAuto();loadHuntPhotos(id);
+  $('formTitle').textContent='Edit hunt';$('saveBtn').textContent='Update hunt';
+  showPage('log');render();
+}
+function clearFormQuiet(){
+  editingId=null;pendingPhotos=[];renderHuntThumbs();
+  ['area','stand','start','end','bucks','does','buckNotes','comments'].forEach(id=>$(id).value='');
+  $('date').value=today;gps=null;weatherData=null;setLocBtn();renderAuto();
+  $('formTitle').textContent='New hunt';$('saveBtn').textContent='Save hunt';
+}
+function clearForm(){clearFormQuiet();render()}
+async function del(id){if(confirm('Delete this hunt and its photos?')){hunts=hunts.filter(x=>x.id!==id);deletedHunts.push(id);const ph=(await dbAll().catch(()=>[])).filter(p=>p.huntId===id&&p.user_id===me.id);for(const p of ph){await dbDel(p.id).catch(()=>{});deletedPhotos.push(p.id)}persist();if(editingId===id)clearForm();renderAll();toast('Hunt deleted');syncNow(true)}}
+async function deleteAll(){if(hunts.length&&confirm('Delete ALL your hunts and photos from your account? Back up first if you want to keep them.')){hunts.forEach(h=>deletedHunts.push(h.id));hunts=[];const ph=(await dbAll().catch(()=>[])).filter(p=>p.user_id===me.id);for(const p of ph){await dbDel(p.id).catch(()=>{});deletedPhotos.push(p.id)}persist();clearForm();renderAll();syncNow(true)}}
+/* ======================= sync ======================= */
+function setSyncStatus(html){if($('syncStatus'))$('syncStatus').innerHTML=html}
+async function syncNow(quiet){
+  if(!me||!configured()){return}
+  if(!navigator.onLine){setSyncStatus('Offline — changes are saved on this phone and will sync when you reconnect.');if(!quiet)toast('Offline — will sync later');return}
+  if(syncing)return;syncing=true;setSyncStatus('Syncing…');
+  try{
+    // profile + group members
+    const pr=await api('profiles?select=id,name,group_code');
+    if(pr.ok){members=await pr.json();profile=members.find(m=>m.id===me.id)||profile||{id:me.id,name:me.user_metadata?.name||''};if($('profName')&&document.activeElement!==$('profName'))$('profName').value=profile.name||''}
+    // push hunts
+    const dirty=hunts.filter(h=>h.dirty);
+    if(dirty.length){
+      const body=dirty.map(h=>{const {dirty,...d}=h;return {id:h.id,hunter:h.hunter||profile?.name||'',data:d,updated_at:new Date(h.updated||h.id).toISOString()}});
+      const r=await api('hunts?on_conflict=user_id,id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+      if(!r.ok)throw new Error('could not upload hunts — '+(await r.text()).slice(0,120));
+      hunts.forEach(h=>delete h.dirty);
+    }
+    for(const id of [...deletedHunts]){const r=await api('hunts?user_id=eq.'+me.id+'&id=eq.'+id,{method:'DELETE'});if(r.ok||r.status===404)deletedHunts=deletedHunts.filter(x=>x!==id)}
+    // pull hunts (own + group, per RLS)
+    const r2=await api('hunts?select=user_id,id,hunter,data');
+    if(!r2.ok)throw new Error('could not download hunts — '+(await r2.text()).slice(0,120));
+    const rows=(await r2.json()).filter(x=>x.data?.date);
+    const own=rows.filter(x=>x.user_id===me.id).map(x=>({...x.data,id:x.id,user_id:me.id,hunter:x.hunter||x.data.hunter||''}));
+    const localDirty=hunts.filter(h=>h.dirty),dirtyIds=new Set(localDirty.map(h=>h.id));
+    hunts=own.filter(h=>!dirtyIds.has(h.id)&&!deletedHunts.includes(h.id)).concat(localDirty);
+    partnerHunts=rows.filter(x=>x.user_id!==me.id).map(x=>({...x.data,id:x.id,user_id:x.user_id,hunter:x.hunter||x.data.hunter||'Partner'}));
+    // photos: push pending, delete queued, pull new
+    const local=await dbAll().catch(()=>[]);
+    const pend=local.filter(p=>p.pending&&p.user_id===me.id);
+    if(pend.length){
+      for(let i=0;i<pend.length;i+=5){const chunk=pend.slice(i,i+5);const r=await api('photos?on_conflict=user_id,id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(chunk.map(photoRow))});if(!r.ok)throw new Error('could not upload photos — '+(await r.text()).slice(0,120));for(const p of chunk){delete p.pending;await dbPut(p)}}
+    }
+    for(const id of [...deletedPhotos]){const r=await api('photos?user_id=eq.'+me.id+'&id=eq.'+id,{method:'DELETE'});if(r.ok||r.status===404)deletedPhotos=deletedPhotos.filter(x=>x!==id)}
+    const r3=await api('photos?select=id,user_id,hunt_id,updated_at');
+    if(r3.ok){
+      const idx=await r3.json(),have=new Map(local.map(p=>[p.id,p]));
+      const serverIds=new Set(idx.map(x=>x.id));
+      for(const p of local){if(!serverIds.has(p.id)&&!p.pending)await dbDel(p.id).catch(()=>{})}
+      const missing=idx.filter(x=>!have.has(x.id)).map(x=>x.id);
+      const nameOf=uid=>members.find(m=>m.id===uid)?.name||'';
+      for(let i=0;i<missing.length;i+=10){
+        const ids=missing.slice(i,i+10).map(x=>'"'+x+'"').join(',');
+        const r4=await api(`photos?id=in.(${ids})&select=id,user_id,hunt_id,data`);
+        if(!r4.ok)break;
+        for(const x of await r4.json())await dbPut({...x.data,id:x.id,user_id:x.user_id,huntId:x.hunt_id,hunter:x.data?.hunter||nameOf(x.user_id),group:profile?.group_code||null}).catch(()=>{});
+      }
+      // keep group tag current on partner photos
+      for(const p of local){if(p.user_id!==me.id&&p.group!==(profile?.group_code||null)){p.group=profile?.group_code||null;await dbPut(p).catch(()=>{})}}
+    }
+    persist();
+    setSyncStatus(`<span class="ok">Synced</span> ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})} — ${hunts.length} of yours, ${partnerHunts.length} from partners.`);
+    if(!quiet)toast('Synced');
+  }catch(e){setSyncStatus('Sync problem: '+e.message);if(!quiet)toast('Sync failed')}
+  syncing=false;renderAll();
+}
 
 /* ======================= backup / export ======================= */
 function download(name,content,type){const b=new Blob([content],{type}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-async function exportJSON(){if(!hunts.length){toast('No hunts to back up');return}const photos=await dbAll().catch(()=>[]);download(`whitetail_backup_${today}.json`,JSON.stringify({app:'whitetail-tracker',version:3,exported:new Date().toISOString(),hunts,photos}),'application/json');toast(`Backed up ${hunts.length} hunts, ${photos.length} photos`)}
+async function exportJSON(){if(!hunts.length){toast('No hunts to back up');return}const photos=(await myPhotos()).filter(p=>p.user_id===me.id);download(`whitetail_backup_${today}.json`,JSON.stringify({app:'whitetail-tracker',version:4,exported:new Date().toISOString(),hunts,photos}),'application/json');toast(`Backed up ${hunts.length} hunts, ${photos.length} photos`)}
 function importJSON(file){
   if(!file)return;const rd=new FileReader();
   rd.onload=async()=>{try{const j=JSON.parse(rd.result);const list=Array.isArray(j)?j:j.hunts;if(!Array.isArray(list))throw 0;
     const have=new Set(hunts.map(h=>h.id));let n=0;
-    for(const h of list){if(h&&h.date&&!have.has(h.id)){hunts.push({...h,bucks:+h.bucks||0,does:+h.does||0});n++}}
-    let np=0;if(Array.isArray(j.photos)){const ids=new Set((await dbAll().catch(()=>[])).map(p=>p.id));for(const p of j.photos){if(p?.id&&p.data&&!ids.has(p.id)){await dbPut(p);np++}}}
-    persist();renderAll();toast(n||np?`Restored ${n} hunts, ${np} photos`:'Nothing new to restore')}
+    for(const h of list){if(h&&h.date&&!have.has(h.id)){hunts.push({...h,user_id:me.id,hunter:profile?.name||'',bucks:+h.bucks||0,does:+h.does||0,dirty:true});n++}}
+    let np=0;if(Array.isArray(j.photos)){const ids=new Set((await dbAll().catch(()=>[])).map(p=>p.id));for(const p of j.photos){if(p?.id&&p.data&&!ids.has(p.id)){await dbPut({...p,user_id:me.id,pending:true});np++}}}
+    persist();renderAll();toast(n||np?`Restored ${n} hunts, ${np} photos`:'Nothing new to restore');syncNow(true)}
   catch{toast('That file is not a Whitetail Tracker backup')}
   $('importFile').value=''};
   rd.readAsText(file);
@@ -587,11 +773,19 @@ function exportCSV(){
 }
 
 /* ======================= startup ======================= */
-function setOnline(){$('offline').classList.toggle('show',!navigator.onLine)}
-window.addEventListener('online',setOnline);window.addEventListener('offline',setOnline);setOnline();
+function setOnline(){$('offline').classList.toggle('show',!navigator.onLine);if(navigator.onLine&&me)syncNow(true)}
+window.addEventListener('online',setOnline);window.addEventListener('offline',()=>setOnline());
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-applyTheme();loadSyncForm();$('date').value=today;renderAuto();renderHuntThumbs();renderAll();
-if(settings.sbUrl&&settings.groupCode&&navigator.onLine)syncNow(true);
+applyTheme();$('date').value=today;renderAuto();renderHuntThumbs();setOnline();
+(async()=>{
+  if(!configured()){$('setupMsg').style.display='block';$('auth').classList.add('show');return}
+  if(await handleRecoveryLink()){}
+  if(session?.access_token){
+    if(!session.user||!await ensureFreshSession()){try{const r=await authFetch('/auth/v1/user');if(r.ok){session.user=await r.json();saveSession(session)}else if(navigator.onLine){saveSession(null)}}catch{}}
+    if(session?.user){await afterSignIn();return}
+  }
+  $('auth').classList.add('show');authMode('in');
+})();
 </script>
 </body>
 </html>
