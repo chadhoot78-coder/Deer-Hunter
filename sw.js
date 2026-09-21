@@ -1,5 +1,5 @@
 // Bump CACHE every time index.html changes so phones pick up the new version.
-const CACHE = 'whitetail-v1';
+const CACHE = 'whitetail-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.png'];
 
 self.addEventListener('install', e => {
