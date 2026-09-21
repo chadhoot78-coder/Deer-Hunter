@@ -12,28 +12,32 @@
 <link rel="icon" href="./icon.png">
 <title>Whitetail Tracker</title>
 <style>
-:root{--bg:#f3f1ea;--card:#fff;--ink:#20251f;--muted:#697066;--green:#263d2b;--green2:#405c42;--tan:#e9e2d2;--line:#ddd9cf;--red:#9b3b32;--amber:#8a6a1f}
+:root{--bg:#f3f1ea;--card:#fff;--ink:#20251f;--muted:#697066;--green:#263d2b;--green2:#405c42;--btn:#263d2b;--tan:#e9e2d2;--line:#ddd9cf;--red:#9b3b32;--soft:#f4f7f1;--soft2:#f7f5ee;--nav:#fff;--bar:#6f8f6a;--barhi:#263d2b;--label:#4c554d;--inputbg:#fff}
+:root[data-theme="dark"]{--bg:#141914;--card:#1d241d;--ink:#e8e6dd;--muted:#9aa394;--green:#a9c7a4;--green2:#5b7a58;--btn:#5b7a58;--tan:#2f3a2f;--line:#2e372e;--red:#c2564b;--soft:#222c22;--soft2:#222a22;--nav:#1a201a;--bar:#5b7a58;--barhi:#a9c7a4;--label:#b7bfb1;--inputbg:#161c16}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141914;--card:#1d241d;--ink:#e8e6dd;--muted:#9aa394;--green:#a9c7a4;--green2:#5b7a58;--btn:#5b7a58;--tan:#2f3a2f;--line:#2e372e;--red:#c2564b;--soft:#222c22;--soft2:#222a22;--nav:#1a201a;--bar:#5b7a58;--barhi:#a9c7a4;--label:#b7bfb1;--inputbg:#161c16}}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
-header{background:linear-gradient(145deg,var(--green),var(--green2));color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 18px;position:sticky;top:0;z-index:5}
-header h1{margin:0;font-size:26px}
-header p{margin:4px 0 0;opacity:.84;font-size:14px}
-main{max-width:900px;margin:auto;padding:14px 14px 40px}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+header{background:linear-gradient(145deg,#263d2b,#405c42);color:#fff;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px}
+header h1{margin:0;font-size:22px;flex:1}
+header select{width:auto;padding:6px 10px;border-radius:9px;background:#ffffff22;color:#fff;border:1px solid #ffffff44;font-size:13px}
+header select option{color:#000}
+main{max-width:900px;margin:auto;padding:14px 14px calc(90px + env(safe-area-inset-bottom))}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #0000000b}
 .card h2{font-size:19px;margin:0 0 14px}
+.card h3{font-size:14px;margin:16px 0 8px;color:var(--label)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-label{display:block;font-size:12px;font-weight:700;margin:0 0 6px;color:#4c554d}
-input,textarea,select,button{font:inherit;width:100%;border:1px solid #d5d2c9;border-radius:11px;padding:11px;background:#fff;color:var(--ink)}
-input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--green2);outline-offset:1px}
-button{border:0;background:var(--green);color:#fff;font-weight:700;cursor:pointer}
+.span2{grid-column:1/-1}
+label{display:block;font-size:12px;font-weight:700;margin:0 0 6px;color:var(--label)}
+input,textarea,select,button{font:inherit;width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;background:var(--inputbg);color:var(--ink)}
+input:focus-visible,textarea:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--green2);outline-offset:1px}
+button{border:0;background:var(--btn);color:#fff;font-weight:700;cursor:pointer}
 button:disabled{opacity:.55;cursor:default}
-.secondary{background:var(--tan);color:var(--ink)}
-.danger{background:var(--red)}
-.ghost{background:transparent;color:var(--green);border:1px solid var(--line)}
+.secondary{background:var(--tan) !important;color:var(--ink) !important}
+.danger{background:var(--red) !important;color:#fff !important}
 .actions{display:flex;gap:9px;margin-top:14px}
 .actions button{flex:1}
-.auto{background:#f4f7f1;border:1px solid #dbe4d6;border-radius:13px;padding:12px;margin-top:12px;font-size:13px}
+.auto{background:var(--soft);border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:12px;font-size:13px}
 .auto b{color:var(--green)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .stat{margin:0;padding:13px}
@@ -41,49 +45,93 @@ button:disabled{opacity:.55;cursor:default}
 .stat strong{display:block;font-size:24px;margin-top:4px}
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .toolbar h2{margin-right:auto;margin-bottom:0}
-.toolbar button,.toolbar select{width:auto}
+.toolbar button,.toolbar select,.toolbar input{width:auto}
 .table{overflow:auto;margin-top:10px}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th{font-size:11px;color:var(--muted);font-weight:600}
 tr.row{cursor:pointer}
-tr.row:hover td{background:#faf9f5}
-tr.editing td{background:#eef3ea}
-td .mini{width:auto;padding:6px 9px;font-size:12px;margin-right:4px}
+tr.row:hover td{background:var(--soft2)}
+tr.editing td{background:var(--soft)}
+.mini{width:auto;padding:6px 9px;font-size:12px;margin-right:4px;display:inline-block;text-decoration:none;border-radius:9px}
 .muted{color:var(--muted);font-size:12px}
 .weathergrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
-.weatheritem{background:#f6f5f0;border-radius:12px;padding:10px}
+.weatheritem{background:var(--soft2);border-radius:12px;padding:10px}
 .weatheritem small{display:block;color:var(--muted);font-size:10px}
 .weatheritem b{display:block;margin-top:3px;font-size:14px}
-.moon{display:flex;gap:12px;align-items:center;background:#f7f5ee;border-radius:13px;padding:12px;margin-top:10px}
+.moon{display:flex;gap:12px;align-items:center;background:var(--soft2);border-radius:13px;padding:12px;margin-top:10px}
 .moonicon{font-size:35px}
 .note{font-size:12px;color:var(--muted);margin-top:8px}
-.banner{display:none;background:#fff5da;color:var(--amber);border:1px solid #efd99a;border-radius:11px;padding:9px 12px;font-size:13px;margin:12px 0}
+.banner{display:none;background:#fff5da;color:#8a6a1f;border:1px solid #efd99a;border-radius:11px;padding:9px 12px;font-size:13px;margin:12px 0}
 .banner.show{display:block}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;white-space:nowrap}
 .toast.show{opacity:1}
 .hidden{display:none !important}
-@media(max-width:560px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.weathergrid{grid-template-columns:repeat(2,1fr)}header h1{font-size:23px}.toolbar input{max-width:100% !important}}
+.page{display:none}.page.active{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--nav);border-top:1px solid var(--line);display:flex;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:6}
+nav button{background:none;color:var(--muted);border:0;border-radius:0;padding:6px 0;font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:20px}
+nav button.on{color:var(--green)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{width:auto;padding:6px 11px;border-radius:999px;font-size:12px;background:var(--tan);color:var(--ink);font-weight:600}
+.chip.on{background:var(--btn);color:#fff}
+.rut{display:flex;gap:14px;align-items:center}
+.rut .big{font-size:30px;font-weight:800;color:var(--green);line-height:1}
+.rutbar{height:10px;border-radius:999px;background:var(--tan);position:relative;margin-top:14px;overflow:visible}
+.rutbar i{position:absolute;top:0;bottom:0;background:var(--bar);border-radius:999px}
+.rutbar b{position:absolute;top:-4px;width:4px;height:18px;background:var(--red);border-radius:2px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:110px;margin-top:8px}
+.bars div{flex:1;background:var(--bar);border-radius:4px 4px 0 0;position:relative;min-height:2px}
+.bars div small{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:9px;color:var(--muted)}
+.bars div em{position:absolute;top:-16px;left:0;right:0;text-align:center;font-size:10px;font-style:normal;color:var(--ink)}
+.barwrap{padding-bottom:20px;padding-top:16px}
+.rose{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:8px}
+.rose div{text-align:center;font-size:11px}
+.rose div i{display:block;height:70px;background:var(--tan);border-radius:8px;position:relative;overflow:hidden;margin-bottom:4px}
+.rose div i b{position:absolute;bottom:0;left:0;right:0;background:var(--bar)}
+.rose div i.hi b{background:var(--barhi)}
+.rose div small{display:block;color:var(--muted);font-size:10px}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.gallery figure{margin:0;position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--tan);cursor:pointer}
+.gallery img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery figcaption{position:absolute;left:0;right:0;bottom:0;background:#0009;color:#fff;font-size:10px;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modal{position:fixed;inset:0;background:#000c;z-index:20;display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheet{background:var(--card);color:var(--ink);width:100%;max-width:600px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.sheet img{width:100%;border-radius:12px;max-height:55vh;object-fit:contain;background:#000}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer}
+.thumbs .add{width:64px;height:64px;border-radius:8px;background:var(--tan);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--muted);cursor:pointer}
+.kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.kv:last-child{border:0}
+.ok{color:var(--green);font-weight:700}
+a{color:var(--green)}
+.sortbtn{cursor:pointer}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.span2{grid-column:auto}.stats{grid-template-columns:repeat(2,1fr)}.weathergrid{grid-template-columns:repeat(2,1fr)}.toolbar input{max-width:100% !important}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
 <body>
-<header><h1>Whitetail Tracker</h1><p>Log buck and doe sightings with automatic weather and moon phase.</p></header>
+<header><h1>Whitetail Tracker</h1><select id="season" onchange="renderAll()"></select></header>
 <main>
 <div id="offline" class="banner">You're offline. Hunts still save on this device; weather will load when you're back online.</div>
 
+<!-- ================= LOG ================= -->
+<section id="page-log" class="page active">
 <section class="card">
-<h2 id="formTitle">New Hunt</h2>
-<div class="grid">
+<div class="toolbar"><h2 id="formTitle">New hunt</h2><button class="secondary" style="width:auto" onclick="sameAsLast()">Same stand as last time</button></div>
+<div class="grid" style="margin-top:12px">
 <div><label for="area">Area</label><input id="area" list="areaList" placeholder="Farm, lease, property…"><datalist id="areaList"></datalist></div>
 <div><label for="stand">Stand name</label><input id="stand" list="standList" placeholder="North Woods, Box Stand 3…"><datalist id="standList"></datalist></div>
 <div><label for="date">Date</label><input id="date" type="date"></div>
+<div><label>Hunt location</label><button id="locBtn" class="secondary" onclick="getLocation()">Use my location</button></div>
 <div><label for="start">Start time</label><input id="start" type="time"></div>
 <div><label for="end">End time</label><input id="end" type="time"></div>
-<div><label>Hunt location</label><button id="locBtn" class="secondary" onclick="getLocation()">Use my location</button></div>
 <div><label for="bucks">Buck sightings</label><input id="bucks" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
 <div><label for="does">Doe sightings</label><input id="does" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
-<div style="grid-column:1/-1"><label for="comments">Comments</label><textarea id="comments" rows="4" placeholder="Wind changes, deer movement, rut activity, stand conditions, what you saw…"></textarea></div>
+<div class="span2"><label for="buckNotes">Buck details</label><input id="buckNotes" placeholder="8 pt ~3.5 yr chasing doe at 7:10; spike at 8:00"></div>
+<div class="span2"><label for="comments">Comments</label><textarea id="comments" rows="3" placeholder="Wind changes, deer movement, rut activity, stand conditions…"></textarea></div>
+<div class="span2"><label>Photos</label><div class="thumbs" id="huntThumbs"></div><input id="huntPhotoInput" type="file" accept="image/*" multiple class="hidden" onchange="addHuntPhotos(this.files)"></div>
 </div>
 <div id="weather" class="auto"></div>
 <div class="actions"><button id="saveBtn" onclick="saveHunt()">Save hunt</button><button class="secondary" onclick="clearForm()">Clear</button></div>
@@ -93,59 +141,142 @@ td .mini{width:auto;padding:6px 9px;font-size:12px;margin-right:4px}
 <div class="card stat"><span>Hunts</span><strong id="nHunts">0</strong></div>
 <div class="card stat"><span>Bucks seen</span><strong id="nBucks">0</strong></div>
 <div class="card stat"><span>Does seen</span><strong id="nDoes">0</strong></div>
-<div class="card stat"><span>Deer per hunt</span><strong id="nAvg">0</strong></div>
+<div class="card stat"><span>Deer per hour</span><strong id="nRate">0</strong></div>
+</section>
+<div id="rutMini" class="card" style="cursor:pointer" onclick="showPage('insights')"></div>
 </section>
 
+<!-- ================= HISTORY ================= -->
+<section id="page-history" class="page">
 <section class="card">
 <div class="toolbar"><h2>Hunt history</h2>
 <input id="search" style="max-width:220px" placeholder="Search area, stand, notes…" oninput="render()">
-<select id="sort" onchange="render()"><option value="date">Newest first</option><option value="bucks">Most bucks</option><option value="deer">Most deer</option></select>
+<select id="sort" onchange="render()"><option value="date">Newest first</option><option value="bucks">Most bucks</option><option value="deer">Most deer</option><option value="rate">Best deer/hr</option></select>
 </div>
-<div class="table"><table><thead><tr><th>Date</th><th>Area</th><th>Stand</th><th>Time</th><th>Bucks</th><th>Does</th><th>Weather</th><th>Wind</th><th>Moon</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
-<p class="note">Tap a row to edit it.</p>
+<div class="table"><table><thead><tr><th>Date</th><th>Hunter</th><th>Area</th><th>Stand</th><th>Time</th><th>Bucks</th><th>Does</th><th>Weather</th><th>Wind</th><th>Barometer</th><th>Moon</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+<p class="note">Tap a row to edit it. Partners' hunts (from sync) are view-only.</p>
+</section>
 </section>
 
+<!-- ================= INSIGHTS ================= -->
+<section id="page-insights" class="page">
+<section class="card" id="rutCard"></section>
+<section class="card"><h2>Stand scorecard</h2><div class="muted">Deer seen per hour on stand. Tap a column header to sort.</div><div class="table"><table><thead><tr><th class="sortbtn" onclick="scoreSort='stand';renderInsights()">Stand</th><th class="sortbtn" onclick="scoreSort='hunts';renderInsights()">Sits</th><th class="sortbtn" onclick="scoreSort='hours';renderInsights()">Hours</th><th class="sortbtn" onclick="scoreSort='bucks';renderInsights()">Bucks</th><th class="sortbtn" onclick="scoreSort='does';renderInsights()">Does</th><th class="sortbtn" onclick="scoreSort='rate';renderInsights()">Deer/hr</th><th class="sortbtn" onclick="scoreSort='brate';renderInsights()">Bucks/hr</th></tr></thead><tbody id="scoreRows"></tbody></table></div></section>
+<section class="card"><h2>Wind by stand</h2><div class="muted">Which winds this stand has produced on. Bar height = deer per sit; label = number of sits on that wind.</div><div class="chips" id="windChips"></div><div class="rose" id="rose"></div></section>
+<section class="card"><h2>Sightings by week</h2><div class="muted">Deer seen per week this season (dark = bucks, light = does). This shows when your bucks actually move.</div><div class="barwrap"><div class="bars" id="weekBars"></div></div></section>
+<section class="card"><h2>Morning vs. evening</h2><div id="ampm" class="stats" style="grid-template-columns:repeat(2,1fr)"></div></section>
+<section class="card"><h2>Best conditions</h2><div class="muted">Deer per hour under different conditions. Needs a few hunts before it means much.</div><div id="conds"></div></section>
+</section>
+
+<!-- ================= CAM ================= -->
+<section id="page-cam" class="page">
 <section class="card">
-<h2>Backup</h2>
-<p class="muted" style="margin-top:0">Hunts are stored only in this browser. Back up to a file now and then; restore it on a new phone or after clearing browser data.</p>
-<div class="actions">
-<button class="secondary" onclick="exportJSON()">Back up (JSON)</button>
-<button class="secondary" onclick="$('importFile').click()">Restore</button>
-<button class="secondary" onclick="exportCSV()">Export CSV</button>
+<div class="toolbar"><h2>Game cam</h2><button style="width:auto" onclick="$('camInput').click()">Add photos</button></div>
+<input id="camInput" type="file" accept="image/*" multiple class="hidden" onchange="addCamPhotos(this.files)">
+<div class="grid" style="margin-top:12px">
+<div><label for="camStand">Camera / stand for new uploads</label><input id="camStand" list="standList" placeholder="Which camera?"></div>
+<div><label for="camTag">Tag new uploads as</label><select id="camTag"><option value="buck">Buck</option><option value="doe">Doe</option><option value="other">Other / unknown</option></select></div>
 </div>
+<p class="note">Photos are shrunk to about 1200px and stored on this phone only (they don't sync). Date comes from the file; tap a photo to correct it or add notes.</p>
+<div class="chips" id="camFilters"></div>
+<div id="camSummary" class="muted"></div>
+<div class="gallery" id="gallery"></div>
+</section>
+</section>
+
+<!-- ================= SETTINGS ================= -->
+<section id="page-settings" class="page">
+<section class="card"><h2>Appearance</h2>
+<div class="chips"><button class="chip" data-theme="auto" onclick="setTheme('auto')">Auto</button><button class="chip" data-theme="light" onclick="setTheme('light')">Light</button><button class="chip" data-theme="dark" onclick="setTheme('dark')">Dark</button></div>
+<p class="note">Dark is easier on the eyes in the stand before daylight.</p>
+</section>
+
+<section class="card"><h2>Share with hunting partners</h2>
+<p class="muted" style="margin-top:0">Optional. Everyone in your group enters the same group code plus the URL and key of one free Supabase project (setup steps in the README). Hunts sync both ways; photos stay on each phone.</p>
+<div class="grid">
+<div><label for="hunterName">Your name</label><input id="hunterName" placeholder="Chad"></div>
+<div><label for="groupCode">Group code</label><input id="groupCode" placeholder="e.g. redriver2026"></div>
+<div class="span2"><label for="sbUrl">Supabase project URL</label><input id="sbUrl" placeholder="https://xxxx.supabase.co"></div>
+<div class="span2"><label for="sbKey">Supabase anon key</label><input id="sbKey" placeholder="eyJ…"></div>
+</div>
+<div class="actions"><button class="secondary" onclick="saveSync()">Save settings</button><button onclick="syncNow()">Sync now</button></div>
+<div class="chips" style="margin-top:12px"><button class="chip" id="partnersChip" onclick="togglePartners()">Include partners' hunts in stats</button></div>
+<div id="syncStatus" class="note"></div>
+</section>
+
+<section class="card"><h2>Backup</h2>
+<p class="muted" style="margin-top:0">Hunts and cam photos live in this browser. Back up to a file now and then; restore on a new phone or after clearing browser data.</p>
+<div class="actions"><button class="secondary" onclick="exportJSON()">Back up (JSON)</button><button class="secondary" onclick="$('importFile').click()">Restore</button><button class="secondary" onclick="exportCSV()">Export CSV</button></div>
 <input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importJSON(this.files[0])">
 <div class="actions"><button class="danger" onclick="deleteAll()">Delete all hunts</button></div>
+<p class="muted" style="text-align:center;margin-top:24px">Splitting lease or feed costs? Venmo <a href="https://venmo.com/u/chadhoot1978" target="_blank" rel="noopener" style="font-weight:700">@chadhoot1978</a></p>
 </section>
-<p class="muted" style="text-align:center;margin-top:24px">Splitting lease or feed costs? Venmo <a href="https://venmo.com/u/chadhoot1978" target="_blank" rel="noopener" style="color:var(--green);font-weight:700">@chadhoot1978</a></p>
+</section>
 </main>
+
+<nav>
+<button id="nav-log" onclick="showPage('log')"><span>🎯</span>Log</button>
+<button id="nav-history" onclick="showPage('history')"><span>📋</span>History</button>
+<button id="nav-insights" onclick="showPage('insights')"><span>📈</span>Insights</button>
+<button id="nav-cam" onclick="showPage('cam')"><span>📷</span>Cam</button>
+<button id="nav-settings" onclick="showPage('settings')"><span>⚙️</span>Settings</button>
+</nav>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()"><div class="sheet" id="sheet"></div></div>
 <div id="toast" class="toast"></div>
 
 <script>
-const KEY='whitetailTrackerV2';
+/* ======================= state ======================= */
+const KEY='whitetailTrackerV2', SKEY='whitetailSettings';
 const $=id=>document.getElementById(id);
 const SYN=29.530588853;
-let hunts=load(),gps=null,weatherData=null,editingId=null,toastTimer=null;
+const DIRS=['N','NE','E','SE','S','SW','W','NW'];
+let hunts=load(KEY,[]), partnerHunts=load(KEY+'_partners',[]), settings=load(SKEY,{});
+let gps=null,weatherData=null,editingId=null,toastTimer=null,pendingPhotos=[],scoreSort='rate',roseStand=null,camFilter='all';
 const today=localDate(new Date());
 
 function localDate(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
-function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch{return []}}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(hunts))}catch{toast('Could not save — storage is full or blocked')}}
-function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2200)}
+function load(k,fb){try{const v=JSON.parse(localStorage.getItem(k));return v??fb}catch{return fb}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(hunts));localStorage.setItem(KEY+'_partners',JSON.stringify(partnerHunts))}catch{toast('Could not save — storage is full or blocked')}}
+function saveSettings(){localStorage.setItem(SKEY,JSON.stringify(settings))}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2400)}
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ---------- location ---------- */
+/* ======================= seasons ======================= */
+function seasonOf(dateStr){const [y,m]=dateStr.split('-').map(Number);return m>=8?y:y-1}
+function seasonLabel(y){return `${y}–${String(y+1).slice(2)} season`}
+function allHunts(){return settings.partners?hunts.concat(partnerHunts):hunts}
+function seasonHunts(list=allHunts()){const s=$('season').value;return s==='all'?list:list.filter(h=>seasonOf(h.date)===+s)}
+function buildSeasonSelect(){
+  const cur=$('season').value;const ys=new Set(allHunts().map(h=>seasonOf(h.date)));ys.add(seasonOf(today));
+  $('season').innerHTML=[...ys].sort((a,b)=>b-a).map(y=>`<option value="${y}">${seasonLabel(y)}</option>`).join('')+'<option value="all">All seasons</option>';
+  $('season').value=[...$('season').options].some(o=>o.value===cur)?cur:String(seasonOf(today));
+}
+
+/* ======================= pages ======================= */
+function showPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id==='page-'+p));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.id==='nav-'+p));if(p==='insights')renderInsights();if(p==='cam')renderGallery();window.scrollTo(0,0)}
+
+/* ======================= theme ======================= */
+function setTheme(t){settings.theme=t;saveSettings();applyTheme()}
+function applyTheme(){const t=settings.theme||'auto';if(t==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);document.querySelectorAll('[data-theme]').forEach(b=>b.classList.toggle('on',b.dataset.theme===t))}
+
+/* ======================= location ======================= */
 function getLocation(){
   if(!navigator.geolocation){toast('Location is not available in this browser');return}
   $('locBtn').textContent='Getting location…';$('locBtn').disabled=true;
-  navigator.geolocation.getCurrentPosition(async p=>{
-    gps={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};
-    setLocBtn();await loadAutoData();
-  },()=>{$('locBtn').disabled=false;$('locBtn').textContent='Use my location';toast('Allow location access to load weather')},
+  navigator.geolocation.getCurrentPosition(async p=>{gps={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};setLocBtn();await loadAutoData()},
+  ()=>{$('locBtn').disabled=false;$('locBtn').textContent='Use my location';toast('Allow location access to load weather')},
   {enableHighAccuracy:true,timeout:15000,maximumAge:300000});
 }
 function setLocBtn(){$('locBtn').disabled=false;$('locBtn').textContent=gps?`Location ready (${gps.lat}, ${gps.lon})`:'Use my location'}
+function sameAsLast(){
+  const last=[...hunts].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id)[0];
+  if(!last){toast('No previous hunt yet');return}
+  $('area').value=last.area||'';$('stand').value=last.stand||'';gps=last.gps||null;setLocBtn();
+  if(gps)loadAutoData();else toast('Filled in area and stand');
+}
 
-/* ---------- moon / weather ---------- */
+/* ======================= moon / weather ======================= */
 function phaseForDate(dateStr){
   const ms=Date.parse(dateStr+'T12:00:00Z')-Date.parse('2000-01-06T18:14:00Z');
   const age=((ms/86400000)%SYN+SYN)%SYN,p=age/SYN,illum=(1-Math.cos(2*Math.PI*p))/2;
@@ -153,8 +284,11 @@ function phaseForDate(dateStr){
   if(p<.0338||p>=.9662){name='New Moon';icon='🌑'}else if(p<.2165){name='Waxing Crescent';icon='🌒'}else if(p<.2838){name='First Quarter';icon='🌓'}else if(p<.4662){name='Waxing Gibbous';icon='🌔'}else if(p<.5338){name='Full Moon';icon='🌕'}else if(p<.7162){name='Waning Gibbous';icon='🌖'}else if(p<.7835){name='Last Quarter';icon='🌗'}else{name='Waning Crescent';icon='🌘'}
   return {name,icon,illumination:Math.round(illum*100)};
 }
-function compass(d){if(d==null)return '—';return ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8]}
+function compass(d){if(d==null||isNaN(d))return '—';return DIRS[Math.round(d/45)%8]}
 function weatherName(c){const m={0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',56:'Freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Rain showers',81:'Rain showers',82:'Heavy rain showers',85:'Snow showers',86:'Heavy snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Thunderstorm with hail'};return c==null?'—':(m[c]||'Variable')}
+function hourOf(t){if(!t)return null;const [h,m]=t.split(':').map(Number);return h+m/60}
+function sitHours(h){const a=hourOf(h.start),b=hourOf(h.end);if(a==null||b==null)return null;let d=b-a;if(d<0)d+=24;return d>0&&d<16?d:null}
+function isMorning(h){const a=hourOf(h.start);if(a!=null)return a<12;const b=hourOf(h.end);return b!=null?b<=12:null}
 
 async function loadAutoData(){
   if(!gps)return;
@@ -164,20 +298,40 @@ async function loadAutoData(){
   if(daysAgo< -15){weatherData={moon};$('weather').innerHTML='<b>Forecast only goes 16 days out</b><div class="muted">Weather will load once the hunt date is closer. Moon phase is ready.</div>'+moonHtml(moon);return}
   $('weather').innerHTML='<b>Loading weather…</b><div class="muted">Getting conditions for your hunt date.</div>';
   try{
-    // Archive API lags a few days behind, so use the forecast API (which serves ~90 days of past data) for anything recent.
+    // Archive API lags a few days; the forecast API serves ~90 days of past data, so use it for anything recent.
     const historical=daysAgo>60;
     const host=historical?'https://archive-api.open-meteo.com/v1/archive':'https://api.open-meteo.com/v1/forecast';
-    const params=new URLSearchParams({latitude:gps.lat,longitude:gps.lon,start_date:d,end_date:d,daily:'temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max,wind_direction_10m_dominant,sunrise,sunset',temperature_unit:'fahrenheit',wind_speed_unit:'mph',precipitation_unit:'inch',timezone:'auto'});
+    const params=new URLSearchParams({latitude:gps.lat,longitude:gps.lon,start_date:d,end_date:d,
+      daily:'temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max,wind_direction_10m_dominant,sunrise,sunset',
+      hourly:'temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m',
+      temperature_unit:'fahrenheit',wind_speed_unit:'mph',precipitation_unit:'inch',timezone:'auto'});
     const r=await fetch(host+'?'+params);
     if(!r.ok)throw new Error('Weather request failed');
-    const x=(await r.json()).daily;
+    const j=await r.json(),x=j.daily,hr=j.hourly;
     if(!x?.time?.length||x.temperature_2m_max[0]==null)throw new Error('No weather data');
-    weatherData={high:x.temperature_2m_max[0],low:x.temperature_2m_min[0],rain:x.precipitation_sum[0],code:x.weather_code[0],wind:x.wind_speed_10m_max[0],windDir:x.wind_direction_10m_dominant[0],sunrise:x.sunrise?.[0],sunset:x.sunset?.[0],moon,historical:daysAgo>0};
-    renderAuto();
+    weatherData={high:x.temperature_2m_max[0],low:x.temperature_2m_min[0],rain:x.precipitation_sum[0],code:x.weather_code[0],wind:x.wind_speed_10m_max[0],windDir:x.wind_direction_10m_dominant[0],sunrise:x.sunrise?.[0],sunset:x.sunset?.[0],moon,historical:daysAgo>0,hourly:null};
+    if(hr?.time)weatherData.hourly={t:hr.temperature_2m,p:hr.pressure_msl,ws:hr.wind_speed_10m,wd:hr.wind_direction_10m};
+    computeSit();renderAuto();
   }catch(e){
     weatherData={moon};
     $('weather').innerHTML='<b>Weather could not be loaded</b><div class="muted">Check your connection and tap “Use my location” again. Moon phase is still ready.</div>'+moonHtml(moon);
   }
+}
+// Conditions during the actual sit, from the hourly series (index = local hour of day).
+function computeSit(){
+  const w=weatherData;if(!w?.hourly)return;
+  let a=hourOf($('start').value),b=hourOf($('end').value);
+  if(a==null&&b==null){w.sit=null;return}
+  if(a==null)a=Math.max(0,b-3);if(b==null)b=Math.min(23.99,a+3);
+  const h0=Math.floor(a),h1=Math.min(23,Math.max(h0,Math.ceil(b)-1));
+  const H=w.hourly,idx=[];for(let i=h0;i<=h1;i++)idx.push(i);
+  const vals=k=>idx.map(i=>H[k][i]).filter(v=>v!=null);
+  const t=vals('t'),ws=vals('ws');
+  let sx=0,sy=0;idx.forEach(i=>{const d=H.wd[i];if(d!=null){sx+=Math.sin(d*Math.PI/180);sy+=Math.cos(d*Math.PI/180)}});
+  const dom=(Math.atan2(sx,sy)*180/Math.PI+360)%360;
+  const p0=H.p[Math.max(0,h0-3)],p1=H.p[Math.min(23,h1+1)];
+  const dp=(p0!=null&&p1!=null)?(p1-p0)*0.02953:null; // hPa → inHg over the sit
+  w.sit={temp:t.length?t.reduce((x,y)=>x+y,0)/t.length:null,wind:ws.length?ws.reduce((x,y)=>x+y,0)/ws.length:null,windDir:dom,pressure:p1!=null?p1*0.02953:null,dp,trend:dp==null?null:dp>0.04?'rising':dp<-0.04?'falling':'steady'};
 }
 function timeOnly(v){if(!v)return '—';return new Date(v).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}
 function moonHtml(m){return `<div class="moon"><div class="moonicon">${m.icon}</div><div><b>${m.name}</b><div class="muted">${m.illumination}% illuminated</div></div></div>`}
@@ -185,88 +339,259 @@ function renderAuto(){
   const w=weatherData;
   if(!w){$('weather').innerHTML='<b>Automatic weather &amp; moon phase</b><div class="muted">Tap “Use my location” to load conditions for the hunt date.</div>';return}
   if(w.high==null){$('weather').innerHTML='<b>Moon phase</b>'+moonHtml(w.moon);return}
+  const s=w.sit;
   $('weather').innerHTML=`<b>${w.historical?'Recorded conditions':'Forecast'}</b><div class="weathergrid">
 <div class="weatheritem"><small>High / Low</small><b>${Math.round(w.high)}° / ${Math.round(w.low)}°F</b></div>
-<div class="weatheritem"><small>Wind</small><b>${Math.round(w.wind)} mph ${compass(w.windDir)}</b></div>
+<div class="weatheritem"><small>Max wind</small><b>${Math.round(w.wind)} mph ${compass(w.windDir)}</b></div>
 <div class="weatheritem"><small>Sky</small><b>${weatherName(w.code)}</b></div>
 <div class="weatheritem"><small>Rain</small><b>${Number(w.rain).toFixed(2)} in</b></div>
 <div class="weatheritem"><small>Sunrise</small><b>${timeOnly(w.sunrise)}</b></div>
-<div class="weatheritem"><small>Sunset</small><b>${timeOnly(w.sunset)}</b></div></div>${moonHtml(w.moon)}`;
+<div class="weatheritem"><small>Sunset</small><b>${timeOnly(w.sunset)}</b></div>
+${s?`<div class="weatheritem"><small>Temp on stand</small><b>${s.temp==null?'—':Math.round(s.temp)+'°F'}</b></div>
+<div class="weatheritem"><small>Wind on stand</small><b>${s.wind==null?'—':Math.round(s.wind)+' mph '+compass(s.windDir)}</b></div>
+<div class="weatheritem"><small>Barometer</small><b>${s.pressure?s.pressure.toFixed(2)+' in, '+s.trend:'—'}</b></div>`:'<div class="weatheritem"><small>On-stand conditions</small><b>Enter start &amp; end times</b></div>'}
+</div>${moonHtml(w.moon)}`;
 }
 $('date').addEventListener('change',()=>{if(gps)loadAutoData()});
+['start','end'].forEach(id=>$(id).addEventListener('change',()=>{if(weatherData?.hourly){computeSit();renderAuto()}}));
 
-/* ---------- save / edit ---------- */
-function saveHunt(){
+/* ======================= photos (IndexedDB) ======================= */
+let dbp=null;
+function db(){if(dbp)return dbp;dbp=new Promise((res,rej)=>{const r=indexedDB.open('whitetail',1);r.onupgradeneeded=()=>{r.result.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return dbp}
+async function dbAll(){const d=await db();return new Promise((res,rej)=>{const r=d.transaction('photos').objectStore('photos').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbPut(p){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').put(p);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+async function dbDel(id){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').delete(id);t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+async function dbClear(){const d=await db();return new Promise((res,rej)=>{const t=d.transaction('photos','readwrite');t.objectStore('photos').clear();t.oncomplete=res;t.onerror=()=>rej(t.error)})}
+function shrink(file,max=1200,q=.72){return new Promise((res,rej)=>{const url=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',q))};im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('bad image'))};im.src=url})}
+function fileDateTime(f){const d=new Date(f.lastModified||Date.now());return {date:localDate(d),time:d.toTimeString().slice(0,5)}}
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+async function addHuntPhotos(files){
+  for(const f of files){try{const data=await shrink(f);const dt=fileDateTime(f);pendingPhotos.push({id:newId('p'),data,date:$('date').value||dt.date,time:dt.time,stand:$('stand').value,area:$('area').value,tag:'hunt',notes:'',huntId:editingId,src:'hunt'})}catch{toast('Could not read one of the photos')}}
+  $('huntPhotoInput').value='';renderHuntThumbs();
+}
+function renderHuntThumbs(){$('huntThumbs').innerHTML=pendingPhotos.map(p=>`<img src="${p.data}" alt="" onclick="openPhoto('${p.id}',true)">`).join('')+`<div class="add" onclick="$('huntPhotoInput').click()">＋</div>`}
+async function loadHuntPhotos(id){const all=await dbAll().catch(()=>[]);pendingPhotos=all.filter(p=>p.huntId===id);renderHuntThumbs()}
+
+async function addCamPhotos(files){
+  const stand=$('camStand').value.trim(),tag=$('camTag').value;let n=0;
+  for(const f of files){try{const data=await shrink(f);const dt=fileDateTime(f);await dbPut({id:newId('c'),data,date:dt.date,time:dt.time,stand,area:'',tag,notes:'',huntId:null,src:'cam'});n++}catch{}}
+  $('camInput').value='';toast(`Added ${n} photo${n===1?'':'s'}`);renderGallery();
+}
+async function renderGallery(){
+  const all=(await dbAll().catch(()=>[])).filter(p=>p.src==='cam');
+  const stands=[...new Set(all.map(p=>p.stand).filter(Boolean))].sort();
+  $('camFilters').innerHTML=[['all','All'],['buck','Bucks'],['doe','Does'],['other','Other']].map(([v,l])=>`<button class="chip ${camFilter===v?'on':''}" onclick="camFilter='${v}';renderGallery()">${l}</button>`).join('')+stands.map((s,i)=>`<button class="chip ${camFilter==='s:'+s?'on':''}" onclick="camFilter='s:'+camStands[${i}];renderGallery()">${esc(s)}</button>`).join('');
+  window.camStands=stands;
+  const inSeason=p=>{const s=$('season').value;return s==='all'||seasonOf(p.date)===+s};
+  const season=all.filter(inSeason);let list=season;
+  if(camFilter.startsWith('s:'))list=list.filter(p=>p.stand===camFilter.slice(2));else if(camFilter!=='all')list=list.filter(p=>p.tag===camFilter);
+  list.sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  $('camSummary').textContent=all.length?`${season.length} photos this season, ${season.filter(p=>p.tag==='buck').length} tagged buck.${stands.length?' Bucks by camera: '+stands.map(s=>`${s} ${season.filter(p=>p.stand===s&&p.tag==='buck').length}`).join(', '):''}`:'No cam photos yet. Add a pull from your SD card or your camera app.';
+  $('gallery').innerHTML=list.map(p=>`<figure onclick="openPhoto('${p.id}')"><img src="${p.data}" alt="" loading="lazy"><figcaption>${p.tag==='buck'?'🦌 ':''}${fmtDate(p.date)}${p.stand?' · '+esc(p.stand):''}</figcaption></figure>`).join('');
+}
+async function openPhoto(id,pending){
+  const p=pending?pendingPhotos.find(x=>x.id===id):(await dbAll()).find(x=>x.id===id);if(!p)return;
+  $('sheet').innerHTML=`<img src="${p.data}" alt="">
+<div class="grid" style="margin-top:12px">
+<div><label>Date</label><input id="phDate" type="date" value="${p.date||''}"></div>
+<div><label>Time</label><input id="phTime" type="time" value="${p.time||''}"></div>
+<div><label>Camera / stand</label><input id="phStand" list="standList" value="${esc(p.stand||'')}"></div>
+<div><label>Tag</label><select id="phTag"><option value="buck" ${p.tag==='buck'?'selected':''}>Buck</option><option value="doe" ${p.tag==='doe'?'selected':''}>Doe</option><option value="other" ${p.tag==='other'?'selected':''}>Other</option><option value="hunt" ${p.tag==='hunt'?'selected':''}>Hunt photo</option></select></div>
+<div class="span2"><label>Notes</label><input id="phNotes" value="${esc(p.notes||'')}" placeholder="8 pt, split G2, showed at 6:40…"></div>
+</div>
+<div class="actions"><button onclick="savePhoto('${p.id}',${!!pending})">Save</button><button class="secondary" onclick="closeModal()">Close</button><button class="danger" onclick="deletePhoto('${p.id}',${!!pending})">Delete</button></div>`;
+  $('modal').classList.add('show');
+}
+async function savePhoto(id,pending){
+  const upd={date:$('phDate').value,time:$('phTime').value,stand:$('phStand').value.trim(),tag:$('phTag').value,notes:$('phNotes').value.trim()};
+  if(pending){Object.assign(pendingPhotos.find(x=>x.id===id),upd)}else{const p=(await dbAll()).find(x=>x.id===id);await dbPut({...p,...upd})}
+  closeModal();toast('Photo updated');renderGallery();renderHuntThumbs();
+}
+async function deletePhoto(id,pending){
+  if(!confirm('Delete this photo?'))return;
+  if(pending)pendingPhotos=pendingPhotos.filter(x=>x.id!==id);
+  await dbDel(id).catch(()=>{});closeModal();renderGallery();renderHuntThumbs();
+}
+function closeModal(){$('modal').classList.remove('show')}
+
+/* ======================= save / edit ======================= */
+async function saveHunt(){
   const date=$('date').value;
   if(!date){toast('Enter a hunt date');return}
-  if(!gps&&!weatherData)weatherData={moon:phaseForDate(date)};
-  const h={id:editingId??Date.now(),area:$('area').value.trim(),stand:$('stand').value.trim(),date,start:$('start').value,end:$('end').value,bucks:Math.max(0,+($('bucks').value||0)),does:Math.max(0,+($('does').value||0)),comments:$('comments').value.trim(),gps,weather:weatherData};
+  if(!weatherData)weatherData={moon:phaseForDate(date)};
+  if(weatherData.hourly)computeSit();
+  const {hourly,...wSave}=weatherData; // don't store the full hourly series
+  const h={id:editingId??Date.now(),hunter:settings.hunterName||'',area:$('area').value.trim(),stand:$('stand').value.trim(),date,start:$('start').value,end:$('end').value,bucks:Math.max(0,+($('bucks').value||0)),does:Math.max(0,+($('does').value||0)),buckNotes:$('buckNotes').value.trim(),comments:$('comments').value.trim(),gps,weather:wSave,photos:pendingPhotos.length,updated:Date.now()};
   if(editingId!=null){hunts=hunts.map(x=>x.id===editingId?h:x);toast('Hunt updated')}else{hunts.push(h);toast('Hunt saved')}
-  persist();clearForm();render();
+  for(const p of pendingPhotos){await dbPut({...p,huntId:h.id,stand:p.stand||h.stand,area:h.area}).catch(()=>{})}
+  persist();clearForm();renderAll();
+  if(settings.sbUrl&&settings.groupCode)syncNow(true);
 }
 function editHunt(id){
-  const h=hunts.find(x=>x.id===id);if(!h)return;
+  const h=hunts.find(x=>x.id===id);if(!h){toast("Partners' hunts can't be edited here");return}
   editingId=id;
   $('area').value=h.area||'';$('stand').value=h.stand||'';$('date').value=h.date||today;$('start').value=h.start||'';$('end').value=h.end||'';
-  $('bucks').value=h.bucks||'';$('does').value=h.does||'';$('comments').value=h.comments||'';
-  gps=h.gps||null;weatherData=h.weather||null;setLocBtn();renderAuto();
+  $('bucks').value=h.bucks||'';$('does').value=h.does||'';$('buckNotes').value=h.buckNotes||'';$('comments').value=h.comments||'';
+  gps=h.gps||null;weatherData=h.weather||null;setLocBtn();renderAuto();loadHuntPhotos(id);
   $('formTitle').textContent='Edit hunt';$('saveBtn').textContent='Update hunt';
-  render();window.scrollTo({top:0,behavior:'smooth'});
+  showPage('log');render();
 }
 function clearForm(){
-  editingId=null;
-  ['area','stand','start','end','bucks','does','comments'].forEach(id=>$(id).value='');
+  editingId=null;pendingPhotos=[];renderHuntThumbs();
+  ['area','stand','start','end','bucks','does','buckNotes','comments'].forEach(id=>$(id).value='');
   $('date').value=today;gps=null;weatherData=null;setLocBtn();renderAuto();
-  $('formTitle').textContent='New Hunt';$('saveBtn').textContent='Save hunt';render();
+  $('formTitle').textContent='New hunt';$('saveBtn').textContent='Save hunt';render();
 }
-function del(id){if(confirm('Delete this hunt?')){hunts=hunts.filter(x=>x.id!==id);persist();if(editingId===id)clearForm();else render();toast('Hunt deleted')}}
-function deleteAll(){if(hunts.length&&confirm('Delete ALL hunt data? Back up first if you want to keep it.')){hunts=[];persist();clearForm()}}
+async function del(id){if(confirm('Delete this hunt and its photos?')){hunts=hunts.filter(x=>x.id!==id);persist();const ph=(await dbAll().catch(()=>[])).filter(p=>p.huntId===id);for(const p of ph)await dbDel(p.id).catch(()=>{});if(editingId===id)clearForm();renderAll();toast('Hunt deleted');if(settings.sbUrl)sbDelete(id)}}
+async function deleteAll(){if(hunts.length&&confirm('Delete ALL your hunts and photos on this phone? Back up first if you want to keep them.')){hunts=[];persist();await dbClear().catch(()=>{});clearForm();renderAll()}}
 
-/* ---------- render ---------- */
+/* ======================= render ======================= */
 function fmtDate(s){if(!s)return '—';const [y,m,d]=s.split('-');return `${+m}/${+d}/${y.slice(2)}`}
 function fmtTime(t){if(!t)return '';const [h,m]=t.split(':');const H=+h;return `${H%12||12}:${m}${H<12?'a':'p'}`}
+function rate(h){const hrs=sitHours(h);return hrs?(h.bucks+h.does)/hrs:null}
+function renderAll(){buildSeasonSelect();render();renderRutMini();if($('page-insights').classList.contains('active'))renderInsights();if($('page-cam').classList.contains('active'))renderGallery()}
 function render(){
   const q=$('search').value.trim().toLowerCase(),sort=$('sort').value;
-  let f=hunts.filter(h=>`${h.area} ${h.stand} ${h.comments}`.toLowerCase().includes(q));
-  f.sort((a,b)=>sort==='bucks'?(b.bucks-a.bucks)||b.date.localeCompare(a.date):sort==='deer'?((b.bucks+b.does)-(a.bucks+a.does))||b.date.localeCompare(a.date):b.date.localeCompare(a.date)||b.id-a.id);
-  $('rows').innerHTML=f.length?f.map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date);
+  let f=seasonHunts().filter(h=>`${h.area} ${h.stand} ${h.comments} ${h.buckNotes} ${h.hunter}`.toLowerCase().includes(q));
+  const byDate=(a,b)=>b.date.localeCompare(a.date)||b.id-a.id;
+  f.sort((a,b)=>sort==='bucks'?(b.bucks-a.bucks)||byDate(a,b):sort==='deer'?((b.bucks+b.does)-(a.bucks+a.does))||byDate(a,b):sort==='rate'?((rate(b)||0)-(rate(a)||0))||byDate(a,b):byDate(a,b));
+  $('rows').innerHTML=f.length?f.map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date),s=w.sit,own=hunts.includes(h);
     const time=h.start||h.end?`${fmtTime(h.start)}–${fmtTime(h.end)}`:'—';
-    const map=h.gps?`<a class="mini" href="https://maps.google.com/?q=${h.gps.lat},${h.gps.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Map</a>`:'';
-    return `<tr class="row${h.id===editingId?' editing':''}" onclick="editHunt(${h.id})" title="${esc(h.comments)}"><td>${fmtDate(h.date)}</td><td>${esc(h.area)||'—'}</td><td>${esc(h.stand)||'—'}</td><td>${time}</td><td><b>${h.bucks}</b></td><td>${h.does}</td><td>${w.high!=null?Math.round(w.high)+'°/'+Math.round(w.low)+'° '+weatherName(w.code):'—'}</td><td>${w.wind!=null?Math.round(w.wind)+' '+compass(w.windDir):'—'}</td><td>${m.icon} ${m.name}</td><td>${map}<button class="danger mini" onclick="event.stopPropagation();del(${h.id})">Delete</button></td></tr>`}).join('')
-  :`<tr><td colspan="10" style="text-align:center;padding:25px" class="muted">${hunts.length?'No hunts match that search.':'No hunts yet. Log your first sit above.'}</td></tr>`;
-  $('nHunts').textContent=hunts.length;
-  const b=hunts.reduce((a,h)=>a+(h.bucks||0),0),d=hunts.reduce((a,h)=>a+(h.does||0),0);
-  $('nBucks').textContent=b;$('nDoes').textContent=d;$('nAvg').textContent=hunts.length?((b+d)/hunts.length).toFixed(1):'0';
-  fillList('areaList',hunts.map(h=>h.area));fillList('standList',hunts.map(h=>h.stand));
+    const map=h.gps?`<a class="mini secondary" href="https://maps.google.com/?q=${h.gps.lat},${h.gps.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Map</a>`:'';
+    return `<tr class="row${h.id===editingId?' editing':''}" onclick="editHunt(${h.id})" title="${esc(h.comments)}"><td>${fmtDate(h.date)}</td><td>${esc(h.hunter)||'—'}</td><td>${esc(h.area)||'—'}</td><td>${esc(h.stand)||'—'}</td><td>${time}</td><td><b>${h.bucks}</b>${h.photos?' 📷':''}</td><td>${h.does}</td><td>${w.high!=null?Math.round(w.high)+'°/'+Math.round(w.low)+'° '+weatherName(w.code):'—'}</td><td>${s?.wind!=null?Math.round(s.wind)+' '+compass(s.windDir):w.wind!=null?Math.round(w.wind)+' '+compass(w.windDir):'—'}</td><td>${s?.trend||'—'}</td><td>${m.icon} ${m.name}</td><td>${map}${own?`<button class="danger mini" onclick="event.stopPropagation();del(${h.id})">Delete</button>`:''}</td></tr>`}).join('')
+  :`<tr><td colspan="12" style="text-align:center;padding:25px" class="muted">${allHunts().length?'No hunts match.':'No hunts yet. Log your first sit.'}</td></tr>`;
+  const sh=seasonHunts();
+  const b=sh.reduce((a,h)=>a+(h.bucks||0),0),d=sh.reduce((a,h)=>a+(h.does||0),0),hrs=sh.reduce((a,h)=>a+(sitHours(h)||0),0);
+  $('nHunts').textContent=sh.length;$('nBucks').textContent=b;$('nDoes').textContent=d;$('nRate').textContent=hrs?((b+d)/hrs).toFixed(2):'—';
+  fillList('areaList',allHunts().map(h=>h.area));fillList('standList',allHunts().map(h=>h.stand));
+  $('partnersChip').classList.toggle('on',!!settings.partners);
 }
 function fillList(id,vals){$(id).innerHTML=[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${esc(v)}">`).join('')}
 
-/* ---------- backup / export ---------- */
+/* ======================= rut (LDWF Area 2) ======================= */
+// LDWF Area 2 (NW / central LA): breeding range mid-Oct through Dec; average peak Nov 13–30 (ULM study: Nov 16–30).
+const RUT={preStart:[10,20],peakStart:[11,13],peakEnd:[11,30],postEnd:[12,20]};
+function rutInfo(dateStr=today){
+  const sy=seasonOf(dateStr),md=([m,d])=>new Date(sy,m-1,d),t=new Date(dateStr+'T12:00');
+  const pre=md(RUT.preStart),ps=md(RUT.peakStart),pe=md(RUT.peakEnd),post=md(RUT.postEnd);
+  const days=(a,b)=>Math.round((b-a)/86400000);
+  let phase,line;
+  if(t<pre){phase='Early season';line=`${days(t,ps)} days until peak rut. Bucks are on bed-to-feed patterns; scrapes open around the late-October new moon.`}
+  else if(t<ps){phase='Pre-rut';line=`${days(t,ps)} days until peak. Fresh scrapes and rubs, bucks cruising midday behind cold fronts — a great window.`}
+  else if(t<=pe){phase='Peak rut';line='Peak breeding, Nov 13–30. Sit long near doe bedding and travel corridors; bucks are chasing.'}
+  else if(t<=post){phase='Post-rut';line=`${days(pe,t)} days past peak. Bucks lock down with does, then drift back to food. Watch for a smaller second push about 28 days after peak.`}
+  else{phase='Late season';line='Breeding is mostly done in Area 2. Hunt food on cold evenings; unbred does can cycle again around late December.'}
+  const s0=new Date(sy,9,1),s1=new Date(sy+1,1,1),pct=x=>Math.min(100,Math.max(0,(x-s0)/(s1-s0)*100));
+  return {phase,line,bar:{pre:[pct(pre),pct(ps)],peak:[pct(ps),pct(pe)],post:[pct(pe),pct(post)],now:pct(t)}};
+}
+function renderRutMini(){const r=rutInfo();$('rutMini').innerHTML=`<div class="muted">LDWF Area 2 rut</div><div class="rut"><div class="big">${r.phase}</div></div><div class="muted" style="margin-top:8px">${r.line}</div>`}
+function rutBarHtml(r){return `<div class="rutbar"><i style="left:${r.bar.pre[0]}%;width:${r.bar.pre[1]-r.bar.pre[0]}%;opacity:.35"></i><i style="left:${r.bar.peak[0]}%;width:${r.bar.peak[1]-r.bar.peak[0]}%"></i><i style="left:${r.bar.post[0]}%;width:${r.bar.post[1]-r.bar.post[0]}%;opacity:.35"></i><b style="left:${r.bar.now}%"></b></div><div style="display:flex;justify-content:space-between;margin-top:6px" class="muted"><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span></div>`}
+
+/* ======================= insights ======================= */
+function renderInsights(){
+  const sh=seasonHunts(),r=rutInfo();
+  $('rutCard').innerHTML=`<h2>Rut calendar — LDWF Area 2</h2><div class="rut"><div class="big">${r.phase}</div></div><div class="muted" style="margin-top:6px">${r.line}</div>${rutBarHtml(r)}<p class="note">Light = pre- and post-rut, dark = peak (Nov 13–30), red line = today. Pockets of Area 2 such as much of Bienville Parish run a month later; your own sightings-by-week chart below is the tiebreaker.</p>`;
+
+  // Stand scorecard
+  const S={};sh.forEach(h=>{const k=h.stand||'(no stand)';const s=S[k]??={stand:k,hunts:0,hours:0,bucks:0,does:0};s.hunts++;s.hours+=sitHours(h)||0;s.bucks+=h.bucks;s.does+=h.does});
+  const rows=Object.values(S).map(s=>({...s,rate:s.hours?(s.bucks+s.does)/s.hours:null,brate:s.hours?s.bucks/s.hours:null}));
+  rows.sort((a,b)=>scoreSort==='stand'?a.stand.localeCompare(b.stand):((b[scoreSort]??-1)-(a[scoreSort]??-1)));
+  $('scoreRows').innerHTML=rows.length?rows.map(s=>`<tr><td>${esc(s.stand)}</td><td>${s.hunts}</td><td>${s.hours.toFixed(1)}</td><td>${s.bucks}</td><td>${s.does}</td><td><b>${s.rate==null?'—':s.rate.toFixed(2)}</b></td><td>${s.brate==null?'—':s.brate.toFixed(2)}</td></tr>`).join(''):'<tr><td colspan="7" class="muted" style="text-align:center;padding:20px">Log a few hunts with start and end times.</td></tr>';
+
+  // Wind by stand
+  const stands=[...new Set(sh.map(h=>h.stand).filter(Boolean))].sort();window.roseStands=stands;
+  if(!stands.includes(roseStand))roseStand=stands[0]||null;
+  $('windChips').innerHTML=stands.map((s,i)=>`<button class="chip ${s===roseStand?'on':''}" onclick="roseStand=roseStands[${i}];renderInsights()">${esc(s)}</button>`).join('');
+  const W=DIRS.map(d=>({d,n:0,deer:0}));
+  sh.filter(h=>h.stand===roseStand).forEach(h=>{const w=h.weather||{};const dir=w.sit?.windDir??w.windDir;if(dir==null)return;const i=Math.round(dir/45)%8;W[i].n++;W[i].deer+=h.bucks+h.does});
+  const mx=Math.max(1,...W.map(x=>x.n?x.deer/x.n:0));const best=W.reduce((a,x)=>(x.n&&x.deer/x.n>(a?a.deer/a.n:-1))?x:a,null);
+  $('rose').innerHTML=roseStand?W.map(x=>{const avg=x.n?x.deer/x.n:0;return `<div><i class="${x===best&&x.deer?'hi':''}"><b style="height:${avg/mx*100}%"></b></i>${x.d}<small>${x.n?x.n+' sit'+(x.n>1?'s':''):'—'}</small></div>`}).join(''):'<div class="muted" style="grid-column:1/-1">Log hunts with a location so the wind gets recorded.</div>';
+
+  // Sightings by week (Sep 1 → Feb)
+  const sy=$('season').value==='all'?seasonOf(today):+$('season').value;
+  const s0=new Date(sy,8,1);const weeks=[];for(let i=0;i<24;i++){const dt=new Date(s0.getTime()+i*7*86400000);weeks.push({b:0,d:0,label:(dt.getMonth()+1)+'/'+dt.getDate()})}
+  sh.forEach(h=>{const i=Math.floor((new Date(h.date+'T12:00')-s0)/(7*86400000));if(i>=0&&i<24){weeks[i].b+=h.bucks;weeks[i].d+=h.does}});
+  const wm=Math.max(1,...weeks.map(w=>w.b+w.d));
+  $('weekBars').innerHTML=weeks.map((w,i)=>{const tot=w.b+w.d;return `<div style="height:${tot/wm*100}%;background:linear-gradient(to top,var(--barhi) ${tot?w.b/tot*100:0}%,var(--bar) 0)" title="Week of ${w.label}: ${w.b} bucks, ${w.d} does">${tot?`<em>${tot}</em>`:''}${i%3===0?`<small>${w.label}</small>`:''}</div>`}).join('');
+
+  // AM vs PM
+  const am={h:0,b:0,d:0,n:0},pm={h:0,b:0,d:0,n:0};
+  sh.forEach(h=>{const m=isMorning(h);if(m==null)return;const t=m?am:pm;t.n++;t.h+=sitHours(h)||0;t.b+=h.bucks;t.d+=h.does});
+  const cell=(t,name)=>`<div class="card stat" style="margin:0"><span>${name} · ${t.n} sits</span><strong>${t.h?((t.b+t.d)/t.h).toFixed(2):'—'}</strong><span>deer/hr · ${t.b} bucks, ${t.d} does</span></div>`;
+  $('ampm').innerHTML=cell(am,'Morning')+cell(pm,'Evening');
+
+  // Conditions
+  const groups=[
+    ['Barometer',h=>{const t=h.weather?.sit?.trend;return t?t[0].toUpperCase()+t.slice(1):null}],
+    ['Temperature on stand',h=>{const t=h.weather?.sit?.temp??h.weather?.low;return t==null?null:t<35?'Below 35°':t<50?'35–50°':t<65?'50–65°':'65°+'}],
+    ['Wind speed',h=>{const w=h.weather?.sit?.wind??h.weather?.wind;return w==null?null:w<5?'Calm (under 5)':w<12?'Light (5–12)':'Windy (12+)'}],
+    ['Moon',h=>{const m=h.weather?.moon||phaseForDate(h.date);return m.illumination<25?'Dark (under 25%)':m.illumination<75?'Half':'Bright (75%+)'}],
+    ['Sky',h=>{const c=h.weather?.code;return c==null?null:c<=1?'Clear':c<=3?'Cloudy':c<=48?'Fog':'Rain'}],
+  ];
+  $('conds').innerHTML=groups.map(([name,fn])=>{
+    const G={};sh.forEach(h=>{const k=fn(h);if(!k)return;const g=G[k]??={n:0,h:0,deer:0};g.n++;g.h+=sitHours(h)||0;g.deer+=h.bucks+h.does});
+    const ks=Object.keys(G);if(!ks.length)return '';
+    const mx=Math.max(0.01,...ks.map(k=>G[k].h?G[k].deer/G[k].h:0));
+    return `<h3>${name}</h3>`+ks.map(k=>{const g=G[k],r=g.h?g.deer/g.h:null;return `<div class="kv"><span>${k} <span class="muted">${g.n} sit${g.n>1?'s':''}</span></span><span style="display:flex;align-items:center;gap:8px"><i style="display:inline-block;height:8px;border-radius:4px;background:var(--bar);width:${r==null?0:Math.round(r/mx*90)}px"></i><b>${r==null?'—':r.toFixed(2)}</b></span></div>`}).join('');
+  }).join('')||'<div class="muted">Nothing yet.</div>';
+}
+
+/* ======================= sync (Supabase, optional) ======================= */
+function loadSyncForm(){$('hunterName').value=settings.hunterName||'';$('groupCode').value=settings.groupCode||'';$('sbUrl').value=settings.sbUrl||'';$('sbKey').value=settings.sbKey||''}
+function saveSync(){settings.hunterName=$('hunterName').value.trim();settings.groupCode=$('groupCode').value.trim();settings.sbUrl=$('sbUrl').value.trim().replace(/\/$/,'');settings.sbKey=$('sbKey').value.trim();saveSettings();toast('Settings saved')}
+function togglePartners(){settings.partners=!settings.partners;saveSettings();renderAll()}
+function sbHeaders(extra={}){return {'apikey':settings.sbKey,'Authorization':'Bearer '+settings.sbKey,'Content-Type':'application/json',...extra}}
+async function syncNow(quiet){
+  if(!settings.sbUrl||!settings.sbKey||!settings.groupCode){if(!quiet)toast('Fill in the sharing settings first');return}
+  if(!navigator.onLine){if(!quiet)toast('Offline — will sync later');return}
+  $('syncStatus').textContent='Syncing…';
+  try{
+    const base=settings.sbUrl+'/rest/v1/hunts';
+    if(hunts.length){
+      const body=hunts.map(h=>({id:h.id,group_code:settings.groupCode,hunter:h.hunter||settings.hunterName||'',data:h,updated_at:new Date(h.updated||h.id).toISOString()}));
+      const r=await fetch(base+'?on_conflict=group_code,id',{method:'POST',headers:sbHeaders({'Prefer':'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(body)});
+      if(!r.ok)throw new Error('push failed — '+(await r.text()).slice(0,140));
+    }
+    const r2=await fetch(base+'?group_code=eq.'+encodeURIComponent(settings.groupCode)+'&select=id,hunter,data',{headers:sbHeaders()});
+    if(!r2.ok)throw new Error('pull failed — '+(await r2.text()).slice(0,140));
+    const rows=await r2.json(),mine=new Set(hunts.map(h=>h.id));
+    partnerHunts=rows.filter(x=>!mine.has(x.id)&&x.data?.date).map(x=>({...x.data,hunter:x.hunter||x.data.hunter||'Partner',id:x.id}));
+    persist();renderAll();
+    $('syncStatus').innerHTML=`<span class="ok">Synced</span> ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})} — ${hunts.length} of yours, ${partnerHunts.length} from partners.`;
+    if(!quiet)toast('Synced');
+  }catch(e){$('syncStatus').textContent='Sync '+e.message;if(!quiet)toast('Sync failed')}
+}
+async function sbDelete(id){try{await fetch(settings.sbUrl+'/rest/v1/hunts?group_code=eq.'+encodeURIComponent(settings.groupCode)+'&id=eq.'+id,{method:'DELETE',headers:sbHeaders()})}catch{}}
+
+/* ======================= backup / export ======================= */
 function download(name,content,type){const b=new Blob([content],{type}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function exportJSON(){if(!hunts.length){toast('No hunts to back up');return}download(`whitetail_backup_${today}.json`,JSON.stringify({app:'whitetail-tracker',exported:new Date().toISOString(),hunts},null,1),'application/json')}
+async function exportJSON(){if(!hunts.length){toast('No hunts to back up');return}const photos=await dbAll().catch(()=>[]);download(`whitetail_backup_${today}.json`,JSON.stringify({app:'whitetail-tracker',version:3,exported:new Date().toISOString(),hunts,photos}),'application/json');toast(`Backed up ${hunts.length} hunts, ${photos.length} photos`)}
 function importJSON(file){
   if(!file)return;const rd=new FileReader();
-  rd.onload=()=>{try{const j=JSON.parse(rd.result);const list=Array.isArray(j)?j:j.hunts;if(!Array.isArray(list))throw 0;
+  rd.onload=async()=>{try{const j=JSON.parse(rd.result);const list=Array.isArray(j)?j:j.hunts;if(!Array.isArray(list))throw 0;
     const have=new Set(hunts.map(h=>h.id));let n=0;
     for(const h of list){if(h&&h.date&&!have.has(h.id)){hunts.push({...h,bucks:+h.bucks||0,does:+h.does||0});n++}}
-    persist();render();toast(n?`Restored ${n} hunt${n===1?'':'s'}`:'Nothing new to restore')}
+    let np=0;if(Array.isArray(j.photos)){const ids=new Set((await dbAll().catch(()=>[])).map(p=>p.id));for(const p of j.photos){if(p?.id&&p.data&&!ids.has(p.id)){await dbPut(p);np++}}}
+    persist();renderAll();toast(n||np?`Restored ${n} hunts, ${np} photos`:'Nothing new to restore')}
   catch{toast('That file is not a Whitetail Tracker backup')}
   $('importFile').value=''};
   rd.readAsText(file);
 }
 function exportCSV(){
-  if(!hunts.length){toast('No hunts to export');return}
-  const headers=['Date','Area','Stand Name','Start Time','End Time','Buck Sightings','Doe Sightings','Comments','Latitude','Longitude','High Temp F','Low Temp F','Wind Speed mph','Wind Direction','Weather','Rain in','Moon Phase','Moon Illumination %','Sunrise','Sunset'];
-  const rows=[...hunts].sort((a,b)=>a.date.localeCompare(b.date)).map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date);return [h.date,h.area,h.stand,h.start,h.end,h.bucks,h.does,h.comments||'',h.gps?.lat??'',h.gps?.lon??'',w.high??'',w.low??'',w.wind??'',w.windDir!=null?compass(w.windDir):'',w.code!=null?weatherName(w.code):'',w.rain??'',m.name,m.illumination??'',w.sunrise||'',w.sunset||'']});
+  const list=allHunts();if(!list.length){toast('No hunts to export');return}
+  const headers=['Date','Hunter','Area','Stand Name','Start Time','End Time','Hours','Buck Sightings','Doe Sightings','Buck Details','Comments','Latitude','Longitude','High Temp F','Low Temp F','Temp On Stand F','Wind On Stand mph','Wind Dir On Stand','Barometer inHg','Pressure Trend','Max Wind mph','Wind Direction','Weather','Rain in','Moon Phase','Moon Illumination %','Sunrise','Sunset'];
+  const rows=[...list].sort((a,b)=>a.date.localeCompare(b.date)).map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date),s=w.sit||{};return [h.date,h.hunter||'',h.area,h.stand,h.start,h.end,sitHours(h)?.toFixed(2)??'',h.bucks,h.does,h.buckNotes||'',h.comments||'',h.gps?.lat??'',h.gps?.lon??'',w.high??'',w.low??'',s.temp?.toFixed(0)??'',s.wind?.toFixed(0)??'',s.windDir!=null?compass(s.windDir):'',s.pressure?.toFixed(2)??'',s.trend||'',w.wind??'',w.windDir!=null?compass(w.windDir):'',w.code!=null?weatherName(w.code):'',w.rain??'',m.name,m.illumination??'',w.sunrise||'',w.sunset||'']});
   const csv=[headers,...rows].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');
   download(`whitetail_hunts_${today}.csv`,'\ufeff'+csv,'text/csv;charset=utf-8');
 }
 
-/* ---------- startup ---------- */
+/* ======================= startup ======================= */
 function setOnline(){$('offline').classList.toggle('show',!navigator.onLine)}
 window.addEventListener('online',setOnline);window.addEventListener('offline',setOnline);setOnline();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-$('date').value=today;renderAuto();render();
+applyTheme();loadSyncForm();$('date').value=today;renderAuto();renderHuntThumbs();renderAll();
+if(settings.sbUrl&&settings.groupCode&&navigator.onLine)syncNow(true);
 </script>
 </body>
 </html>
