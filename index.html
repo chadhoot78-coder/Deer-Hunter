@@ -107,6 +107,12 @@ nav button.on{color:var(--green)}
 .ok{color:var(--green);font-weight:700}
 a{color:var(--green)}
 .sortbtn{cursor:pointer}
+.seg{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.seg:last-child{border:0}
+.seg.open{color:var(--green);font-weight:700}
+.seg.past{color:var(--muted)}
+.seg .when{white-space:nowrap}
+.now{font-size:20px;font-weight:800;color:var(--green);margin:4px 0}
 @media(max-width:560px){.grid{grid-template-columns:1fr}.span2{grid-column:auto}.stats{grid-template-columns:repeat(2,1fr)}.weathergrid{grid-template-columns:repeat(2,1fr)}.toolbar input{max-width:100% !important}}
 @media(prefers-reduced-motion:reduce){.toast{transition:none}}
 .authwrap{position:fixed;inset:0;background:var(--bg);z-index:30;overflow:auto;display:none}
@@ -171,6 +177,7 @@ a{color:var(--green)}
 <div class="card stat"><span>Does seen</span><strong id="nDoes">0</strong></div>
 <div class="card stat"><span>Deer per hour</span><strong id="nRate">0</strong></div>
 </section>
+<div id="seasonCard" class="card"></div>
 <div id="rutMini" class="card" style="cursor:pointer" onclick="showPage('insights')"></div>
 </section>
 
@@ -230,6 +237,13 @@ a{color:var(--green)}
 <div id="syncStatus" class="note"></div>
 </section>
 
+<section class="card"><h2>Deer area</h2>
+<p class="muted" style="margin-top:0">Season dates depend on which LDWF deer area you hunt. Detect it from where you're standing, or pick it.</p>
+<div class="grid"><div><label for="areaSel">LDWF deer area</label><select id="areaSel" onchange="setArea(this.value)"><option value="">Not set</option><option value="1">Area 1</option><option value="2">Area 2</option><option value="3">Area 3</option><option value="4">Area 4</option><option value="5">Area 5</option><option value="6">Area 6</option><option value="7">Area 7</option><option value="8">Area 8</option><option value="9">Area 9</option><option value="10">Area 10</option></select></div>
+<div><label>&nbsp;</label><button class="secondary" onclick="detectArea()">Detect from my location</button></div></div>
+<div id="areaNote" class="note"></div>
+</section>
+
 <section class="card"><h2>Hunting group</h2>
 <p class="muted" style="margin-top:0">Everyone in a group sees each other's hunts and cam photos. Make up a code and share it with your partners, or enter the one they gave you.</p>
 <div id="groupBox"></div>
@@ -260,7 +274,7 @@ a{color:var(--green)}
 /* ======================= config ======================= */
 // Fill these in from your Supabase project (Settings → API). The anon key is meant to be public;
 // row-level security in the database is what protects each user's data.
-const CONFIG={url:'https://YOUR-PROJECT.supabase.co',key:'YOUR-ANON-KEY'};
+const CONFIG={url:'https://vhnpiprscrmwfvktixvb.supabase.co',key:'sb_publishable_te-X3YBsJ7Bc1LfQJyoUuw_yobiOU-s'};
 
 /* ======================= state ======================= */
 const $=id=>document.getElementById(id);
@@ -419,7 +433,7 @@ function applyTheme(){const t=settings.theme||'auto';if(t==='auto')document.docu
 function getLocation(){
   if(!navigator.geolocation){toast('Location is not available in this browser');return}
   $('locBtn').textContent='Getting location…';$('locBtn').disabled=true;
-  navigator.geolocation.getCurrentPosition(async p=>{gps={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};setLocBtn();await loadAutoData()},
+  navigator.geolocation.getCurrentPosition(async p=>{gps={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};setLocBtn();await loadAutoData();if(!settings.deerArea)detectArea(true)},
   ()=>{$('locBtn').disabled=false;$('locBtn').textContent='Use my location';toast('Allow location access to load weather')},
   {enableHighAccuracy:true,timeout:15000,maximumAge:300000});
 }
@@ -514,7 +528,7 @@ $('date').addEventListener('change',()=>{if(gps)loadAutoData()});
 function fmtDate(s){if(!s)return '—';const [y,m,d]=s.split('-');return `${+m}/${+d}/${y.slice(2)}`}
 function fmtTime(t){if(!t)return '';const [h,m]=t.split(':');const H=+h;return `${H%12||12}:${m}${H<12?'a':'p'}`}
 function rate(h){const hrs=sitHours(h);return hrs?(h.bucks+h.does)/hrs:null}
-function renderAll(){buildSeasonSelect();render();renderRutMini();renderGroup();if($('page-insights').classList.contains('active'))renderInsights();if($('page-cam').classList.contains('active'))renderGallery()}
+function renderAll(){buildSeasonSelect();render();renderRutMini();renderGroup();renderSeasonCard();if($('areaSel'))$('areaSel').value=settings.deerArea||'';if($('page-insights').classList.contains('active'))renderInsights();if($('page-cam').classList.contains('active'))renderGallery()}
 function render(){
   const q=$('search').value.trim().toLowerCase(),sort=$('sort').value;
   let f=seasonHunts().filter(h=>`${h.area} ${h.stand} ${h.comments} ${h.buckNotes} ${h.hunter}`.toLowerCase().includes(q));
@@ -533,6 +547,75 @@ function render(){
 }
 function fillList(id,vals){$(id).innerHTML=[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${esc(v)}">`).join('')}
 
+/* ======================= LDWF season dates ======================= */
+// 2026-27 dates from the LDWF Commission action item "2026-2027 Proposed Deer Hunting Dates" (adopted). Dates are MM-DD;
+// months >= Aug fall in the season's first year, others in the second. Private-land dates — WMAs and Kisatchie differ.
+const SEASON_YEAR=2026;
+const SEG=(n,s,e,t='either-sex')=>({n,s,e,t});
+const SEASONS={
+ 1:[SEG('Velvet archery','09-12','09-20','bucks only'),SEG('Archery','10-01','01-31'),SEG('Primitive firearms','11-14','11-20'),SEG('Firearms (still-hunt)','11-21','12-11'),SEG('Firearms (with or without dogs)','12-12','01-03'),SEG('Firearms (still-hunt)','01-04','01-24'),SEG('Primitive firearms','01-25','01-31'),SEG('Youth & veterans','10-31','11-06')],
+ 2:[SEG('Velvet archery','08-26','09-06','bucks only'),SEG('Archery','10-01','01-31'),SEG('Youth & veterans','10-10','10-16'),SEG('Primitive firearms','10-24','10-30'),SEG('Firearms (still-hunt)','10-31','12-09'),SEG('Firearms (with or without dogs)','12-10','01-17'),SEG('Primitive firearms','01-18','01-24')],
+ 3:[SEG('Archery','09-19','01-15'),SEG('Youth & veterans','09-26','10-02'),SEG('Primitive firearms','10-10','10-16'),SEG('Firearms (still-hunt)','10-17','11-29'),SEG('Firearms (with or without dogs)','11-30','01-03'),SEG('Primitive firearms','01-04','01-10')],
+ 4:[SEG('Archery','10-01','01-31'),SEG('Youth & veterans','10-31','11-06'),SEG('Primitive firearms','11-14','11-20'),SEG('Firearms (still-hunt)','11-21','12-11'),SEG('Firearms (with or without dogs)','12-12','01-03'),SEG('Firearms (still-hunt)','01-04','01-24'),SEG('Primitive firearms','01-25','01-31')],
+ 5:[SEG('Archery','10-01','10-15','bucks only'),SEG('Archery','10-16','02-15','either-sex unless a bucks-only firearms season is in progress'),SEG('Youth & veterans','10-31','11-06'),SEG('Primitive firearms','11-14','11-20'),SEG('Firearms (still-hunt)','11-21','11-22'),SEG('Firearms (still-hunt)','11-23','11-26','bucks only'),SEG('Firearms (still-hunt)','11-27','11-29'),SEG('Firearms (still-hunt)','11-30','12-11','bucks only'),SEG('Firearms (with or without dogs)','12-12','12-13'),SEG('Firearms (with or without dogs)','12-14','12-18','bucks only'),SEG('Firearms (with or without dogs)','12-19','12-20'),SEG('Firearms (with or without dogs)','12-21','01-24','bucks only'),SEG('Primitive firearms','01-25','01-31','bucks only')],
+ 6:[SEG('Velvet archery','09-12','09-20','bucks only'),SEG('Archery','10-01','10-15','bucks only'),SEG('Archery','10-16','02-15','either-sex unless a bucks-only firearms season is in progress'),SEG('Youth & veterans','10-31','11-06'),SEG('Primitive firearms','11-14','11-20'),SEG('Firearms (still-hunt)','11-21','12-11'),SEG('Firearms (with or without dogs)','12-12','01-24'),SEG('Primitive firearms','01-25','01-31')],
+ 7:[SEG('Archery','09-19','01-15'),SEG('Youth & veterans','09-26','10-02'),SEG('Primitive firearms','10-10','10-16'),SEG('Firearms (still-hunt)','10-17','11-29'),SEG('Firearms (with or without dogs)','11-30','01-03'),SEG('Primitive firearms','01-04','01-10')],
+ 8:[SEG('Archery','09-19','01-15'),SEG('Youth & veterans','09-26','10-02'),SEG('Primitive firearms','10-10','10-16'),SEG('Firearms (still-hunt)','10-17','11-29'),SEG('Firearms (with or without dogs)','11-30','01-03'),SEG('Primitive firearms','01-04','01-10')],
+ 9:[SEG('Archery','10-01','10-15','bucks only'),SEG('Archery','10-16','02-15','either-sex unless a bucks-only firearms season is in progress'),SEG('Youth & veterans','10-31','11-06'),SEG('Primitive firearms','11-14','11-20'),SEG('Firearms (still-hunt)','11-21','11-22'),SEG('Firearms (still-hunt)','11-23','11-26','bucks only'),SEG('Firearms (still-hunt)','11-27','11-29'),SEG('Firearms (still-hunt)','11-30','12-11','bucks only'),SEG('Firearms (with or without dogs)','12-12','12-13'),SEG('Firearms (with or without dogs)','12-14','12-18','bucks only'),SEG('Firearms (with or without dogs)','12-19','12-20'),SEG('Firearms (with or without dogs)','12-21','01-24','bucks only'),SEG('Primitive firearms','01-25','01-31','bucks only')],
+ 10:[SEG('Archery','09-19','01-15'),SEG('Youth & veterans','09-26','10-02'),SEG('Primitive firearms','10-10','10-16'),SEG('Firearms (still-hunt)','10-17','01-03'),SEG('Primitive firearms','01-04','01-10')],
+};
+// Parish → possible deer areas (LDWF licensing office list). Parishes split by highways/rivers list more than one.
+const PARISH_AREAS={'Acadia':[3,10],'Allen':[2,3],'Ascension':[9],'Assumption':[9],'Avoyelles':[6],'Beauregard':[3,8],'Bienville':[2],'Bossier':[2],'Caddo':[2],'Calcasieu':[3,8,10],'Caldwell':[2],'Cameron':[10],'Catahoula':[1,2],'Claiborne':[2],'Concordia':[1],'De Soto':[2],'DeSoto':[2],'East Baton Rouge':[4,6],'East Carroll':[1],'East Feliciana':[4,6],'Evangeline':[2,6],'Franklin':[1],'Grant':[1,2],'Iberia':[5,7,9,10],'Iberville':[5,6,9],'Jackson':[2],'Jefferson':[9],'Jefferson Davis':[3,10],'Lafayette':[3,6,10],'Lafourche':[9],'La Salle':[1,2],'LaSalle':[1,2],'Lincoln':[2],'Livingston':[4,9],'Madison':[1],'Morehouse':[1,2],'Natchitoches':[2],'Orleans':[9],'Ouachita':[1,2],'Plaquemines':[9],'Pointe Coupee':[6],'Rapides':[1,2,3,6],'Red River':[2],'Richland':[1],'Sabine':[2],'St. Bernard':[9],'St. Charles':[9],'St. Helena':[4],'St. James':[9],'St. John the Baptist':[9],'St. Landry':[3,6],'St. Martin':[5,6,9],'St. Mary':[5,7,9],'St. Tammany':[4,9],'Tangipahoa':[4,9],'Tensas':[1],'Terrebonne':[9],'Union':[2],'Vermilion':[10],'Vernon':[2,3],'Washington':[4],'Webster':[2],'West Baton Rouge':[6],'West Carroll':[1],'West Feliciana':[6],'Winn':[2]};
+function segDate(md,sy=SEASON_YEAR){const [m,d]=md.split('-').map(Number);return new Date(m>=8?sy:sy+1,m-1,d)}
+function fmtMD(md){const d=segDate(md);return d.toLocaleDateString([],{month:'short',day:'numeric'})}
+function seasonStatus(area,dateStr=today){
+  const segs=SEASONS[area];if(!segs)return null;
+  const t=new Date(dateStr+'T12:00');
+  const rows=segs.map(g=>({...g,start:segDate(g.s),end:segDate(g.e)})).map(g=>({...g,open:t>=g.start&&t<=g.end.getTime()+43199999,past:t>g.end.getTime()+43199999}));
+  const open=rows.filter(r=>r.open&&r.n!=='Youth & veterans');
+  const next=rows.filter(r=>r.start>t&&r.n!=='Youth & veterans').sort((a,b)=>a.start-b.start)[0];
+  const firstOpen=rows.filter(r=>r.n!=='Youth & veterans').sort((a,b)=>a.start-b.start)[0];
+  return {rows:rows.sort((a,b)=>a.start-b.start),open,next,firstOpen,days:d=>Math.round((d-t)/86400000)};
+}
+function renderSeasonCard(){
+  const el=$('seasonCard');if(!el)return;
+  const a=settings.deerArea;
+  if(!a){el.innerHTML=`<div class="muted">Season dates</div><div class="now">Set your deer area</div><div class="muted">Tap “Use my location” on a hunt and the app will work out your LDWF area, or pick it under Settings.</div><div class="actions"><button class="secondary" onclick="detectArea()">Detect from my location</button><button class="secondary" onclick="showPage('settings')">Pick area</button></div>`;return}
+  const st=seasonStatus(a);
+  let head,sub;
+  if(st.open.length){head=st.open.map(r=>r.n).join(' + ')+' is open';sub=st.open.map(r=>`${r.n}: ${r.t}, through ${fmtMD(r.e)}`).join(' · ')}
+  else if(st.next){head=`${st.next.n} opens ${fmtMD(st.next.s)}`;sub=`${st.days(st.next.start)} days away · ${st.next.t}`}
+  else{head='Season is over';sub=`Next season starts around ${fmtMD(st.firstOpen.s)}`}
+  const nx=st.open.length&&st.next?`<div class="muted" style="margin-top:6px">Next: ${st.next.n} ${fmtMD(st.next.s)} (${st.days(st.next.start)} days)</div>`:'';
+  el.innerHTML=`<div class="muted">LDWF Area ${a} · ${SEASON_YEAR}–${String(SEASON_YEAR+1).slice(2)}</div><div class="now">${head}</div><div class="muted">${sub}</div>${nx}<div class="actions"><button class="secondary" onclick="showSchedule()">Full schedule</button></div>`;
+}
+function showSchedule(){
+  const a=settings.deerArea,st=seasonStatus(a);
+  $('sheet').innerHTML=`<h2 style="margin:0 0 4px">Area ${a} deer season ${SEASON_YEAR}–${String(SEASON_YEAR+1).slice(2)}</h2><div class="muted">Private land dates. WMAs, refuges and Kisatchie run their own schedules; the CWD control area has extra rules. Verify in the LDWF regulations pamphlet.</div><div style="margin-top:10px">${st.rows.map(r=>`<div class="seg ${r.open?'open':r.past?'past':''}"><span>${r.n}<br><span class="muted" style="font-weight:400">${r.t}</span></span><span class="when">${fmtMD(r.s)} – ${fmtMD(r.e)}</span></div>`).join('')}</div><div class="actions"><button class="secondary" onclick="closeModal()">Close</button></div>`;
+  $('modal').classList.add('show');
+}
+function setArea(v){settings.deerArea=v?+v:null;saveSettings();if($('areaSel'))$('areaSel').value=v||'';renderSeasonCard();if($('areaNote'))$('areaNote').textContent=v?`Season dates and rut timing use Area ${v}.`:''}
+async function detectArea(fromGps){
+  const go=async(lat,lon)=>{
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=8&lat=${lat}&lon=${lon}`,{headers:{'Accept':'application/json'}});
+      const j=await r.json();const county=(j.address?.county||'').replace(/ Parish$/i,'').trim();const state=j.address?.state||'';
+      if(state&&!/louisiana/i.test(state)){toast(`That's in ${state} — this app only has Louisiana dates`);return}
+      const areas=PARISH_AREAS[county];
+      if(!areas){toast(county?`Couldn't map ${county} Parish to a deer area — pick it in Settings`:'Could not work out your parish — pick your area in Settings');return}
+      if(areas.length===1){setArea(areas[0]);toast(`${county} Parish → Area ${areas[0]}`)}
+      else{
+        $('sheet').innerHTML=`<h2 style="margin:0 0 6px">${esc(county)} Parish is split</h2><div class="muted">Parts of ${esc(county)} fall in more than one deer area. Pick the one your lease is in (check the LDWF map if unsure).</div><div class="chips" style="margin-top:12px">${areas.map(x=>`<button class="chip ${settings.deerArea===x?'on':''}" onclick="setArea(${x});closeModal()">Area ${x}</button>`).join('')}</div><div class="actions"><button class="secondary" onclick="closeModal()">Cancel</button></div>`;
+        $('modal').classList.add('show');
+      }
+    }catch{toast('Could not look up your parish — check your connection')}
+  };
+  if(fromGps&&gps){go(gps.lat,gps.lon);return}
+  if(!navigator.geolocation){toast('Location is not available in this browser');return}
+  toast('Finding your parish…');
+  navigator.geolocation.getCurrentPosition(p=>go(p.coords.latitude,p.coords.longitude),()=>toast('Allow location access, or pick your area in Settings'),{timeout:15000,maximumAge:600000});
+}
+
 /* ======================= rut (LDWF Area 2) ======================= */
 // LDWF Area 2 (NW / central LA): breeding range mid-Oct through Dec; average peak Nov 13–30 (ULM study: Nov 16–30).
 const RUT={preStart:[10,20],peakStart:[11,13],peakEnd:[11,30],postEnd:[12,20]};
@@ -549,7 +632,7 @@ function rutInfo(dateStr=today){
   const s0=new Date(sy,9,1),s1=new Date(sy+1,1,1),pct=x=>Math.min(100,Math.max(0,(x-s0)/(s1-s0)*100));
   return {phase,line,bar:{pre:[pct(pre),pct(ps)],peak:[pct(ps),pct(pe)],post:[pct(pe),pct(post)],now:pct(t)}};
 }
-function renderRutMini(){const r=rutInfo();$('rutMini').innerHTML=`<div class="muted">LDWF Area 2 rut</div><div class="rut"><div class="big">${r.phase}</div></div><div class="muted" style="margin-top:8px">${r.line}</div>`}
+function renderRutMini(){const r=rutInfo();$('rutMini').innerHTML=`<div class="muted">Rut (Area 2 timing${settings.deerArea&&settings.deerArea!==2?' — your area may differ':''})</div><div class="rut"><div class="big">${r.phase}</div></div><div class="muted" style="margin-top:8px">${r.line}</div>`}
 function rutBarHtml(r){return `<div class="rutbar"><i style="left:${r.bar.pre[0]}%;width:${r.bar.pre[1]-r.bar.pre[0]}%;opacity:.35"></i><i style="left:${r.bar.peak[0]}%;width:${r.bar.peak[1]-r.bar.peak[0]}%"></i><i style="left:${r.bar.post[0]}%;width:${r.bar.post[1]-r.bar.post[0]}%;opacity:.35"></i><b style="left:${r.bar.now}%"></b></div><div style="display:flex;justify-content:space-between;margin-top:6px" class="muted"><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span></div>`}
 
 /* ======================= insights ======================= */

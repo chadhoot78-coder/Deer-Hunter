@@ -99,5 +99,8 @@ Push the four files to the repo root. Vercel: New Project → import → Framewo
 - **Groups**: Settings → Hunting group → enter any code (4+ characters). Everyone who enters the same code sees each other's hunts and cam photos; partners' entries are read-only. Leave any time.
 - Photos are shrunk to ~1200px (~100–150 KB each). The free tier's 500 MB database holds a few thousand.
 
+## Season dates
+The Log tab shows what's open and what opens next for the hunter's LDWF deer area (private-land dates for 2026-27, from the LDWF Commission's adopted schedule). The area is detected from GPS via OpenStreetMap reverse geocoding (parish → area); parishes that straddle two areas prompt the hunter to pick. Each new season, update `SEASON_YEAR` and the `SEASONS` table near the top of the script from the new LDWF pamphlet.
+
 ## Updating the app
 Edit `index.html`, bump `CACHE` in `sw.js` (v4 → v5 …), push. Phones pick up the new version on the next open with a connection.
