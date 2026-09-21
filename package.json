@@ -1,0 +1,24 @@
+{
+  "name": "deer-hunter",
+  "version": "1.0.0",
+  "description": "Single-page deer hunt log (PWA). Data lives in the browser's localStorage; weather from Open-Meteo (free, no key).",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chadhoot78-coder/Deer-Hunter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chadhoot78-coder/Deer-Hunter/issues"
+  },
+  "homepage": "https://github.com/chadhoot78-coder/Deer-Hunter#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
