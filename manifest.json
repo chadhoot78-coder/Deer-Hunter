@@ -1,0 +1,13 @@
+{
+  "name": "Whitetail Tracker",
+  "short_name": "Whitetail",
+  "description": "Log deer sightings with automatic weather and moon phase.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f1ea",
+  "theme_color": "#263d2b",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#263d2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Whitetail">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.png">
+<link rel="icon" href="./icon.png">
+<title>Whitetail Tracker</title>
+<style>
+:root{--bg:#f3f1ea;--card:#fff;--ink:#20251f;--muted:#697066;--green:#263d2b;--green2:#405c42;--tan:#e9e2d2;--line:#ddd9cf;--red:#9b3b32;--amber:#8a6a1f}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+header{background:linear-gradient(145deg,var(--green),var(--green2));color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 18px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:26px}
+header p{margin:4px 0 0;opacity:.84;font-size:14px}
+main{max-width:900px;margin:auto;padding:14px 14px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #0000000b}
+.card h2{font-size:19px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label{display:block;font-size:12px;font-weight:700;margin:0 0 6px;color:#4c554d}
+input,textarea,select,button{font:inherit;width:100%;border:1px solid #d5d2c9;border-radius:11px;padding:11px;background:#fff;color:var(--ink)}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--green2);outline-offset:1px}
+button{border:0;background:var(--green);color:#fff;font-weight:700;cursor:pointer}
+button:disabled{opacity:.55;cursor:default}
+.secondary{background:var(--tan);color:var(--ink)}
+.danger{background:var(--red)}
+.ghost{background:transparent;color:var(--green);border:1px solid var(--line)}
+.actions{display:flex;gap:9px;margin-top:14px}
+.actions button{flex:1}
+.auto{background:#f4f7f1;border:1px solid #dbe4d6;border-radius:13px;padding:12px;margin-top:12px;font-size:13px}
+.auto b{color:var(--green)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{margin:0;padding:13px}
+.stat span{display:block;color:var(--muted);font-size:11px}
+.stat strong{display:block;font-size:24px;margin-top:4px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toolbar h2{margin-right:auto;margin-bottom:0}
+.toolbar button,.toolbar select{width:auto}
+.table{overflow:auto;margin-top:10px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;color:var(--muted);font-weight:600}
+tr.row{cursor:pointer}
+tr.row:hover td{background:#faf9f5}
+tr.editing td{background:#eef3ea}
+td .mini{width:auto;padding:6px 9px;font-size:12px;margin-right:4px}
+.muted{color:var(--muted);font-size:12px}
+.weathergrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.weatheritem{background:#f6f5f0;border-radius:12px;padding:10px}
+.weatheritem small{display:block;color:var(--muted);font-size:10px}
+.weatheritem b{display:block;margin-top:3px;font-size:14px}
+.moon{display:flex;gap:12px;align-items:center;background:#f7f5ee;border-radius:13px;padding:12px;margin-top:10px}
+.moonicon{font-size:35px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.banner{display:none;background:#fff5da;color:var(--amber);border:1px solid #efd99a;border-radius:11px;padding:9px 12px;font-size:13px;margin:12px 0}
+.banner.show{display:block}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+.toast.show{opacity:1}
+.hidden{display:none !important}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.weathergrid{grid-template-columns:repeat(2,1fr)}header h1{font-size:23px}.toolbar input{max-width:100% !important}}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<header><h1>Whitetail Tracker</h1><p>Log buck and doe sightings with automatic weather and moon phase.</p></header>
+<main>
+<div id="offline" class="banner">You're offline. Hunts still save on this device; weather will load when you're back online.</div>
+
+<section class="card">
+<h2 id="formTitle">New Hunt</h2>
+<div class="grid">
+<div><label for="area">Area</label><input id="area" list="areaList" placeholder="Farm, lease, property…"><datalist id="areaList"></datalist></div>
+<div><label for="stand">Stand name</label><input id="stand" list="standList" placeholder="North Woods, Box Stand 3…"><datalist id="standList"></datalist></div>
+<div><label for="date">Date</label><input id="date" type="date"></div>
+<div><label for="start">Start time</label><input id="start" type="time"></div>
+<div><label for="end">End time</label><input id="end" type="time"></div>
+<div><label>Hunt location</label><button id="locBtn" class="secondary" onclick="getLocation()">Use my location</button></div>
+<div><label for="bucks">Buck sightings</label><input id="bucks" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+<div><label for="does">Doe sightings</label><input id="does" type="number" inputmode="numeric" min="0" step="1" placeholder="0"></div>
+<div style="grid-column:1/-1"><label for="comments">Comments</label><textarea id="comments" rows="4" placeholder="Wind changes, deer movement, rut activity, stand conditions, what you saw…"></textarea></div>
+</div>
+<div id="weather" class="auto"></div>
+<div class="actions"><button id="saveBtn" onclick="saveHunt()">Save hunt</button><button class="secondary" onclick="clearForm()">Clear</button></div>
+</section>
+
+<section class="stats">
+<div class="card stat"><span>Hunts</span><strong id="nHunts">0</strong></div>
+<div class="card stat"><span>Bucks seen</span><strong id="nBucks">0</strong></div>
+<div class="card stat"><span>Does seen</span><strong id="nDoes">0</strong></div>
+<div class="card stat"><span>Deer per hunt</span><strong id="nAvg">0</strong></div>
+</section>
+
+<section class="card">
+<div class="toolbar"><h2>Hunt history</h2>
+<input id="search" style="max-width:220px" placeholder="Search area, stand, notes…" oninput="render()">
+<select id="sort" onchange="render()"><option value="date">Newest first</option><option value="bucks">Most bucks</option><option value="deer">Most deer</option></select>
+</div>
+<div class="table"><table><thead><tr><th>Date</th><th>Area</th><th>Stand</th><th>Time</th><th>Bucks</th><th>Does</th><th>Weather</th><th>Wind</th><th>Moon</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+<p class="note">Tap a row to edit it.</p>
+</section>
+
+<section class="card">
+<h2>Backup</h2>
+<p class="muted" style="margin-top:0">Hunts are stored only in this browser. Back up to a file now and then; restore it on a new phone or after clearing browser data.</p>
+<div class="actions">
+<button class="secondary" onclick="exportJSON()">Back up (JSON)</button>
+<button class="secondary" onclick="$('importFile').click()">Restore</button>
+<button class="secondary" onclick="exportCSV()">Export CSV</button>
+</div>
+<input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importJSON(this.files[0])">
+<div class="actions"><button class="danger" onclick="deleteAll()">Delete all hunts</button></div>
+</section>
+</main>
+<div id="toast" class="toast"></div>
+
+<script>
+const KEY='whitetailTrackerV2';
+const $=id=>document.getElementById(id);
+const SYN=29.530588853;
+let hunts=load(),gps=null,weatherData=null,editingId=null,toastTimer=null;
+const today=localDate(new Date());
+
+function localDate(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch{return []}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(hunts))}catch{toast('Could not save — storage is full or blocked')}}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2200)}
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- location ---------- */
+function getLocation(){
+  if(!navigator.geolocation){toast('Location is not available in this browser');return}
+  $('locBtn').textContent='Getting location…';$('locBtn').disabled=true;
+  navigator.geolocation.getCurrentPosition(async p=>{
+    gps={lat:+p.coords.latitude.toFixed(5),lon:+p.coords.longitude.toFixed(5)};
+    setLocBtn();await loadAutoData();
+  },()=>{$('locBtn').disabled=false;$('locBtn').textContent='Use my location';toast('Allow location access to load weather')},
+  {enableHighAccuracy:true,timeout:15000,maximumAge:300000});
+}
+function setLocBtn(){$('locBtn').disabled=false;$('locBtn').textContent=gps?`Location ready (${gps.lat}, ${gps.lon})`:'Use my location'}
+
+/* ---------- moon / weather ---------- */
+function phaseForDate(dateStr){
+  const ms=Date.parse(dateStr+'T12:00:00Z')-Date.parse('2000-01-06T18:14:00Z');
+  const age=((ms/86400000)%SYN+SYN)%SYN,p=age/SYN,illum=(1-Math.cos(2*Math.PI*p))/2;
+  let name,icon;
+  if(p<.0338||p>=.9662){name='New Moon';icon='🌑'}else if(p<.2165){name='Waxing Crescent';icon='🌒'}else if(p<.2838){name='First Quarter';icon='🌓'}else if(p<.4662){name='Waxing Gibbous';icon='🌔'}else if(p<.5338){name='Full Moon';icon='🌕'}else if(p<.7162){name='Waning Gibbous';icon='🌖'}else if(p<.7835){name='Last Quarter';icon='🌗'}else{name='Waning Crescent';icon='🌘'}
+  return {name,icon,illumination:Math.round(illum*100)};
+}
+function compass(d){if(d==null)return '—';return ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8]}
+function weatherName(c){const m={0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',56:'Freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Rain showers',81:'Rain showers',82:'Heavy rain showers',85:'Snow showers',86:'Heavy snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Thunderstorm with hail'};return c==null?'—':(m[c]||'Variable')}
+
+async function loadAutoData(){
+  if(!gps)return;
+  const d=$('date').value;if(!d)return;
+  const daysAgo=(Date.parse(today)-Date.parse(d))/86400000;
+  const moon=phaseForDate(d);
+  if(daysAgo< -15){weatherData={moon};$('weather').innerHTML='<b>Forecast only goes 16 days out</b><div class="muted">Weather will load once the hunt date is closer. Moon phase is ready.</div>'+moonHtml(moon);return}
+  $('weather').innerHTML='<b>Loading weather…</b><div class="muted">Getting conditions for your hunt date.</div>';
+  try{
+    // Archive API lags a few days behind, so use the forecast API (which serves ~90 days of past data) for anything recent.
+    const historical=daysAgo>60;
+    const host=historical?'https://archive-api.open-meteo.com/v1/archive':'https://api.open-meteo.com/v1/forecast';
+    const params=new URLSearchParams({latitude:gps.lat,longitude:gps.lon,start_date:d,end_date:d,daily:'temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max,wind_direction_10m_dominant,sunrise,sunset',temperature_unit:'fahrenheit',wind_speed_unit:'mph',precipitation_unit:'inch',timezone:'auto'});
+    const r=await fetch(host+'?'+params);
+    if(!r.ok)throw new Error('Weather request failed');
+    const x=(await r.json()).daily;
+    if(!x?.time?.length||x.temperature_2m_max[0]==null)throw new Error('No weather data');
+    weatherData={high:x.temperature_2m_max[0],low:x.temperature_2m_min[0],rain:x.precipitation_sum[0],code:x.weather_code[0],wind:x.wind_speed_10m_max[0],windDir:x.wind_direction_10m_dominant[0],sunrise:x.sunrise?.[0],sunset:x.sunset?.[0],moon,historical:daysAgo>0};
+    renderAuto();
+  }catch(e){
+    weatherData={moon};
+    $('weather').innerHTML='<b>Weather could not be loaded</b><div class="muted">Check your connection and tap “Use my location” again. Moon phase is still ready.</div>'+moonHtml(moon);
+  }
+}
+function timeOnly(v){if(!v)return '—';return new Date(v).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}
+function moonHtml(m){return `<div class="moon"><div class="moonicon">${m.icon}</div><div><b>${m.name}</b><div class="muted">${m.illumination}% illuminated</div></div></div>`}
+function renderAuto(){
+  const w=weatherData;
+  if(!w){$('weather').innerHTML='<b>Automatic weather &amp; moon phase</b><div class="muted">Tap “Use my location” to load conditions for the hunt date.</div>';return}
+  if(w.high==null){$('weather').innerHTML='<b>Moon phase</b>'+moonHtml(w.moon);return}
+  $('weather').innerHTML=`<b>${w.historical?'Recorded conditions':'Forecast'}</b><div class="weathergrid">
+<div class="weatheritem"><small>High / Low</small><b>${Math.round(w.high)}° / ${Math.round(w.low)}°F</b></div>
+<div class="weatheritem"><small>Wind</small><b>${Math.round(w.wind)} mph ${compass(w.windDir)}</b></div>
+<div class="weatheritem"><small>Sky</small><b>${weatherName(w.code)}</b></div>
+<div class="weatheritem"><small>Rain</small><b>${Number(w.rain).toFixed(2)} in</b></div>
+<div class="weatheritem"><small>Sunrise</small><b>${timeOnly(w.sunrise)}</b></div>
+<div class="weatheritem"><small>Sunset</small><b>${timeOnly(w.sunset)}</b></div></div>${moonHtml(w.moon)}`;
+}
+$('date').addEventListener('change',()=>{if(gps)loadAutoData()});
+
+/* ---------- save / edit ---------- */
+function saveHunt(){
+  const date=$('date').value;
+  if(!date){toast('Enter a hunt date');return}
+  if(!gps&&!weatherData)weatherData={moon:phaseForDate(date)};
+  const h={id:editingId??Date.now(),area:$('area').value.trim(),stand:$('stand').value.trim(),date,start:$('start').value,end:$('end').value,bucks:Math.max(0,+($('bucks').value||0)),does:Math.max(0,+($('does').value||0)),comments:$('comments').value.trim(),gps,weather:weatherData};
+  if(editingId!=null){hunts=hunts.map(x=>x.id===editingId?h:x);toast('Hunt updated')}else{hunts.push(h);toast('Hunt saved')}
+  persist();clearForm();render();
+}
+function editHunt(id){
+  const h=hunts.find(x=>x.id===id);if(!h)return;
+  editingId=id;
+  $('area').value=h.area||'';$('stand').value=h.stand||'';$('date').value=h.date||today;$('start').value=h.start||'';$('end').value=h.end||'';
+  $('bucks').value=h.bucks||'';$('does').value=h.does||'';$('comments').value=h.comments||'';
+  gps=h.gps||null;weatherData=h.weather||null;setLocBtn();renderAuto();
+  $('formTitle').textContent='Edit hunt';$('saveBtn').textContent='Update hunt';
+  render();window.scrollTo({top:0,behavior:'smooth'});
+}
+function clearForm(){
+  editingId=null;
+  ['area','stand','start','end','bucks','does','comments'].forEach(id=>$(id).value='');
+  $('date').value=today;gps=null;weatherData=null;setLocBtn();renderAuto();
+  $('formTitle').textContent='New Hunt';$('saveBtn').textContent='Save hunt';render();
+}
+function del(id){if(confirm('Delete this hunt?')){hunts=hunts.filter(x=>x.id!==id);persist();if(editingId===id)clearForm();else render();toast('Hunt deleted')}}
+function deleteAll(){if(hunts.length&&confirm('Delete ALL hunt data? Back up first if you want to keep it.')){hunts=[];persist();clearForm()}}
+
+/* ---------- render ---------- */
+function fmtDate(s){if(!s)return '—';const [y,m,d]=s.split('-');return `${+m}/${+d}/${y.slice(2)}`}
+function fmtTime(t){if(!t)return '';const [h,m]=t.split(':');const H=+h;return `${H%12||12}:${m}${H<12?'a':'p'}`}
+function render(){
+  const q=$('search').value.trim().toLowerCase(),sort=$('sort').value;
+  let f=hunts.filter(h=>`${h.area} ${h.stand} ${h.comments}`.toLowerCase().includes(q));
+  f.sort((a,b)=>sort==='bucks'?(b.bucks-a.bucks)||b.date.localeCompare(a.date):sort==='deer'?((b.bucks+b.does)-(a.bucks+a.does))||b.date.localeCompare(a.date):b.date.localeCompare(a.date)||b.id-a.id);
+  $('rows').innerHTML=f.length?f.map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date);
+    const time=h.start||h.end?`${fmtTime(h.start)}–${fmtTime(h.end)}`:'—';
+    const map=h.gps?`<a class="mini" href="https://maps.google.com/?q=${h.gps.lat},${h.gps.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Map</a>`:'';
+    return `<tr class="row${h.id===editingId?' editing':''}" onclick="editHunt(${h.id})" title="${esc(h.comments)}"><td>${fmtDate(h.date)}</td><td>${esc(h.area)||'—'}</td><td>${esc(h.stand)||'—'}</td><td>${time}</td><td><b>${h.bucks}</b></td><td>${h.does}</td><td>${w.high!=null?Math.round(w.high)+'°/'+Math.round(w.low)+'° '+weatherName(w.code):'—'}</td><td>${w.wind!=null?Math.round(w.wind)+' '+compass(w.windDir):'—'}</td><td>${m.icon} ${m.name}</td><td>${map}<button class="danger mini" onclick="event.stopPropagation();del(${h.id})">Delete</button></td></tr>`}).join('')
+  :`<tr><td colspan="10" style="text-align:center;padding:25px" class="muted">${hunts.length?'No hunts match that search.':'No hunts yet. Log your first sit above.'}</td></tr>`;
+  $('nHunts').textContent=hunts.length;
+  const b=hunts.reduce((a,h)=>a+(h.bucks||0),0),d=hunts.reduce((a,h)=>a+(h.does||0),0);
+  $('nBucks').textContent=b;$('nDoes').textContent=d;$('nAvg').textContent=hunts.length?((b+d)/hunts.length).toFixed(1):'0';
+  fillList('areaList',hunts.map(h=>h.area));fillList('standList',hunts.map(h=>h.stand));
+}
+function fillList(id,vals){$(id).innerHTML=[...new Set(vals.filter(Boolean))].sort().map(v=>`<option value="${esc(v)}">`).join('')}
+
+/* ---------- backup / export ---------- */
+function download(name,content,type){const b=new Blob([content],{type}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportJSON(){if(!hunts.length){toast('No hunts to back up');return}download(`whitetail_backup_${today}.json`,JSON.stringify({app:'whitetail-tracker',exported:new Date().toISOString(),hunts},null,1),'application/json')}
+function importJSON(file){
+  if(!file)return;const rd=new FileReader();
+  rd.onload=()=>{try{const j=JSON.parse(rd.result);const list=Array.isArray(j)?j:j.hunts;if(!Array.isArray(list))throw 0;
+    const have=new Set(hunts.map(h=>h.id));let n=0;
+    for(const h of list){if(h&&h.date&&!have.has(h.id)){hunts.push({...h,bucks:+h.bucks||0,does:+h.does||0});n++}}
+    persist();render();toast(n?`Restored ${n} hunt${n===1?'':'s'}`:'Nothing new to restore')}
+  catch{toast('That file is not a Whitetail Tracker backup')}
+  $('importFile').value=''};
+  rd.readAsText(file);
+}
+function exportCSV(){
+  if(!hunts.length){toast('No hunts to export');return}
+  const headers=['Date','Area','Stand Name','Start Time','End Time','Buck Sightings','Doe Sightings','Comments','Latitude','Longitude','High Temp F','Low Temp F','Wind Speed mph','Wind Direction','Weather','Rain in','Moon Phase','Moon Illumination %','Sunrise','Sunset'];
+  const rows=[...hunts].sort((a,b)=>a.date.localeCompare(b.date)).map(h=>{const w=h.weather||{},m=w.moon||phaseForDate(h.date);return [h.date,h.area,h.stand,h.start,h.end,h.bucks,h.does,h.comments||'',h.gps?.lat??'',h.gps?.lon??'',w.high??'',w.low??'',w.wind??'',w.windDir!=null?compass(w.windDir):'',w.code!=null?weatherName(w.code):'',w.rain??'',m.name,m.illumination??'',w.sunrise||'',w.sunset||'']});
+  const csv=[headers,...rows].map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');
+  download(`whitetail_hunts_${today}.csv`,'\ufeff'+csv,'text/csv;charset=utf-8');
+}
+
+/* ---------- startup ---------- */
+function setOnline(){$('offline').classList.toggle('show',!navigator.onLine)}
+window.addEventListener('online',setOnline);window.addEventListener('offline',setOnline);setOnline();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+$('date').value=today;renderAuto();render();
+</script>
+</body>
+</html>
