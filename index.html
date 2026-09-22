@@ -413,7 +413,7 @@ function renderGroup(){
 }
 async function joinGroup(){
   const code=$('joinCode').value.trim().toLowerCase().replace(/\s+/g,'-');if(code.length<4){toast('Use at least 4 characters');return}
-  try{const r=await api('profiles?id=eq.'+me.id,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify({group_code:code})});if(!r.ok)throw 0;profile={...profile,group_code:code};settings.partners=true;saveSettings();toast('Joined '+code);await syncNow(true);renderAll()}catch{toast('Could not join — check your connection')}
+  try{const r=await api('profiles?on_conflict=id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify({id:me.id,name:profile?.name||me.user_metadata?.name||'',group_code:code})});if(!r.ok)throw new Error(await r.text());const rows=await r.json();if(!rows.length)throw new Error('no profile row');profile={...profile,...rows[0]};settings.partners=true;saveSettings();toast('Joined '+code);await syncNow(true);renderAll()}catch(e){toast('Could not join: '+String(e.message||e).slice(0,80))}
 }
 async function leaveGroup(){
   if(!confirm('Leave this group? Your hunts stay yours; you just stop sharing.'))return;
@@ -834,7 +834,7 @@ async function syncNow(quiet){
   try{
     // profile + group members
     const pr=await api('profiles?select=id,name,group_code');
-    if(pr.ok){members=await pr.json();profile=members.find(m=>m.id===me.id)||profile||{id:me.id,name:me.user_metadata?.name||''};if($('profName')&&document.activeElement!==$('profName'))$('profName').value=profile.name||''}
+    if(pr.ok){members=await pr.json();let mine=members.find(m=>m.id===me.id);if(!mine){const c=await api('profiles?on_conflict=id',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify({id:me.id,name:me.user_metadata?.name||'',group_code:profile?.group_code||null})});if(c.ok){mine=(await c.json())[0];if(mine)members.push(mine)}}profile=mine||profile||{id:me.id,name:me.user_metadata?.name||''};if($('profName')&&document.activeElement!==$('profName'))$('profName').value=profile.name||''}
     // push hunts
     const dirty=hunts.filter(h=>h.dirty);
     if(dirty.length){
