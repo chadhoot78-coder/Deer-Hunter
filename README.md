@@ -97,6 +97,7 @@ Push the four files to the repo root. Vercel: New Project → import → Framewo
 - Hunts and photos save to the phone first, then sync to the account, so the app works in the stand with no signal and catches up later.
 - Hunts logged on a phone before accounts existed are moved into the account automatically on first sign-in.
 - **Groups**: Settings → Hunting group → enter any code (4+ characters). Everyone who enters the same code sees each other's hunts and cam photos; partners' entries are read-only. Leave any time.
+- **Harvests and leaderboard**: each hunt can record bucks/does taken (points, spread, weight for the buck). Insights → Group leaderboard ranks everyone in the group on deer taken, biggest buck, bucks seen and hours on stand, with a per-hunter scorecard.
 - Photos are shrunk to ~1200px (~100–150 KB each). The free tier's 500 MB database holds a few thousand.
 
 ## Season dates
